@@ -1,0 +1,2555 @@
+#!/bin/bash
+# DESCRIPTION
+# KVCTL helps you manage Oracle NoSQL (Editions: Enterprise & Basic)
+# CHANGELOG
+# Version - Author - Detail / Fix / Improvements ...
+# 20180223.12 - Daniel Moya - Initial Version
+
+. $NOSQLTAB 1>/dev/null
+
+set -eu
+
+KVCTL_VERSION=20180223.12
+
+BASH_LOGIN="-o SendEnv=NOSQLTAB bash --login"
+set +e; NUM_FS_MOUNTED=`find /u*/$DEFAULT_DATA_SUFFIX -maxdepth 1 -name $DEFAULT_STORE_NAME -type d 2>/dev/null | grep -c $DEFAULT_STORE_NAME`; set -e
+
+TOTAL_RAM_MB=`free -mwl | grep "Mem:" | awk '{print $2}'`
+NSQL_RAM_MB=`echo "scale=1; $TOTAL_RAM_MB*$PCT_RAM_USED" | bc -l | awk -F'.' '{print $1}'`
+
+EXEC_DATE=`date +%Y%m%d`
+
+#Improvement # makebootconfig param hahost
+
+function nosql_detect_edition() {
+
+if [ -f $KVHOME/lib/kvstore-ee.jar ]; then 
+	echo "EE"
+elif [ -f $KVHOME/src/oracle/kv/Key.java ]; then
+	echo "CE"
+elif [ -f $KVHOME/lib/kvstore.jar ]; then
+	echo "BE"
+else
+	echo "-1"
+	exit 1
+fi
+
+}
+
+function nosql_detect_security() {
+
+if [ -f $KVROOT/$SECDIR/security.xml ]; then
+
+set +e; WALLET_FOUND=`grep -c walletDir $KVROOT/$SECDIR/security.xml`; set -e;
+
+	if [ $WALLET_FOUND -gt 0 ]; then
+		echo "wallet"
+	else
+		echo "pwdfile"
+	fi
+
+else
+	echo "none"
+fi
+
+}
+
+function nosql_determine_executables() {
+
+NOSQL_EDITION=`nosql_detect_edition`
+NOSQL_SECURITY_MODE=`nosql_detect_security`
+
+case $NOSQL_SECURITY_MODE in
+pwdfile|wallet)
+RUNADMIN="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar runadmin -port $NSQL_REGISTRY_PORT -host `hostname` -security $KVROOT/$SECDIR/client.security"
+RUNADMIN_CONNECTED="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar runadmin -port $NSQL_REGISTRY_PORT -host `hostname` -security $KVROOT/$SECDIR/adminlogin"
+RUNADMIN_CONNECTED_STORE="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar runadmin -port $NSQL_REGISTRY_PORT -host `hostname` -security $KVROOT/$SECDIR/adminlogin -store $DEFAULT_STORE_NAME"
+RUNSQL="$JAVA -jar $KVHOME/lib/sql.jar -helper-hosts `hostname`:$NSQL_REGISTRY_PORT -store $DEFAULT_STORE_NAME -username $USERNAME -security $KVROOT/$SECDIR/adminlogin"
+RUNDIAG="$JAVA -jar $KVHOME/lib/kvstore.jar diagnostics"
+#RUNDIAG="$JAVA -jar $KVHOME/lib/kvstore.jar diagnostics -security $KVROOT/$SECDIR/client.security"
+;;
+*)
+RUNADMIN="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar runadmin -host `hostname` -port $NSQL_REGISTRY_PORT"
+RUNADMIN_CONNECTED="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar runadmin -host `hostname` -port $NSQL_REGISTRY_PORT -store $DEFAULT_STORE_NAME"
+RUNADMIN_CONNECTED_STORE="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar runadmin -port $NSQL_REGISTRY_PORT -host `hostname` -store $DEFAULT_STORE_NAME"
+RUNSQL="$JAVA -jar $KVHOME/lib/sql.jar -helper-hosts `hostname`:$NSQL_REGISTRY_PORT -store $DEFAULT_STORE_NAME -username $USERNAME"
+RUNDIAG="$JAVA -jar $KVHOME/lib/kvstore.jar diagnostics "
+;;
+esac
+
+}
+
+nosql_determine_executables
+
+CLIENT_BUILD="$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvclient.jar"
+
+PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+TMPLOG=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlstart --tmpdir=$TMPDIR`
+PURGE_NUMDAYS=3  # Recommended: 45-90
+
+## Security Params
+
+
+#SwitchBackTopo = Tag for actual topology
+SWITCHBACKTOPO=SwitchBackTopo
+#SwitchOverTopo = Tag for switched over scenario
+SWITCHOVERTOPO=SwitchOverTopo
+
+#ExtendingCluster = Tag for extending the capacity of the cluster
+EXTENDCLUSTERTOPO=ExtendingCluster
+
+#Probe
+TABLE_NAME=TestLoader
+
+function show_version() {
+
+echo "---> KVCTL - Version: $KVCTL_VERSION --"
+
+}
+
+function print_help() {
+
+echo "
+-- Oracle NoSQL Control Tool --
+-- Version Num.: $KVCTL_VERSION --
+-- Edition: $NOSQL_EDITION - Security Mode: $NOSQL_SECURITY_MODE --
+
+[m] - Multi-target or Single-target Command DCLI Compatible
+[s] - Single-target Commmand (Avoid executing on DCLI)
+
+Usage:
+	- Health-check & Monitoring:
+		# basic -> SNMP Traps # extended + os -> Netcat for Graphite
+		# tables -> count #Records for each user table. # dbsize (bytes) = Graphite
+[m]	$0 < low | mid | -s | high | all >
+[s]	$0 probe [ num_rows | -cleanup ]      # num_rows = any integer number
+[s]	$0 monitor < basic | extended | os | dbsize | tables [ <table_name> | -i ] >
+
+	- Backup: # Default Tag: bkp_$EXEC_DATE
+[s]	$0 backup [ backup_name ] [ zone-name ]
+[s]	$0 backup list
+[s]	$0 snap role_distrib
+[s]	$0 purge [ backup_name | -all ] [ zone-name ]
+
+	- Export/Import:
+[s]	$0 < export | import > [ <comma-separated list of tables> ]  # Default: All Tables.
+
+	- Configuration:
+[m]	$0 show < *** >  # Check for examples -> $0 examples 
+[s]	$0 show topology
+[m]	$0 show parameter [ -policy | -global | -security | -service <service_name> ]
+[m]	$0 apply-config <integer-MB> <integer-MB> # Xms / Xmx # Set default production parameters
+
+	- Manage:
+[m]	$0 < start | status | stop > [ -disable-services ]
+[s]	$0 < start | stop > <service_name>		# admin[XX] , [ rg*-rn* OR /u** ]
+[s]	$0 runadmin	[ -c ]	# Interactive Shells Console  // -c stands for connect.
+[s]	$0 runsql
+
+	- Troubleshooting:
+[m]	$0 < logtail > [ num_lines_to_show ]
+[s]	$0 diag < setup [-f] | collect | verify < local | multi > | list >
+
+	- Examples:
+[s]	$0 examples	
+"
+
+exit 1
+
+}
+
+function print_hidden_help() {
+
+echo "
+#!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!#
+##### These commands are for admins ONLY ########
+############## USE AT YOUR OWN RISK #############
+
+-- Oracle NoSQL Control Tool --
+-- Version Num.: $KVCTL_VERSION --
+-- Edition: $NOSQL_EDITION --
+-- Security Mode: $NOSQL_SECURITY_MODE --
+
+[m] = multi-node command
+[s] = single-node command
+
+	- Reset the environment:
+[m]	dcli -l oracle -g <groupfile> \"$0 hidden-reset\"
+[s]	$0 hidden-reset
+
+	- \"Install\" Oracle NoSQL (makebootconfig+SNA, all nodes or local):
+[m]	dcli -l oracle -g <groupfile> \"$0 hidden-install\"
+[s]	kvctl hidden-install [ pwdfile | wallet | createdirs* ] *Internal only.
+[m]	kvctl security [ enable * | show | copy <server_name> ] *Internal only.
+
+	- \"Install\" First Node (only execute on first \"admin-node\", locally), non-secure installations;
+[s]	$0 hidden-install firstnode
+
+	- Deploy (Reads from \"NoSQL Tab\" file the topology, add resources and deploy):
+[s]	$0 hidden-install deploy [-p]
+		-p option will preview the topology before starting the INITIAL deployment.
+
+	- Create Application Users from $NOSQLTAB
+[s]	$0 hidden-create-users
+
+	- Switchover (Reads from NoSQLTab File, the \"alternative\" topology)
+[s]	$0 hidden-switchover [-p]
+
+	- Extending the Cluster (New host/s in $NOSQLTAB will be added if they meet the pre-reqs)
+[s]	$0 hidden-extend <zone_name> [-p]
+
+	- Recovery Helper = Shows manual instructions for recovery (actual topology only)
+[m]	$0 hidden-recovery <backup_name>
+
+	- Upgrade
+[m] $0 hidden-show build
+[s]	$0 show upgrade-order
+
+#!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!#
+##### These commands are for admins ONLY ########
+############## USE AT YOUR OWN RISK #############
+"
+
+}
+
+function lock() {
+
+local fd=${2:-$2}
+local prefix=$1.$fd
+local lock_file=$KVROOT/$prefix.lock
+
+# Create Lock file
+eval "exec $fd>$lock_file"
+
+# Acquire the lock
+flock -nux $fd && return 0 || return 1
+
+}
+
+function eexit() {
+
+local error_str="$@"
+
+ echo $error_str
+ exit 1
+
+}
+
+function pause(){
+   read -p "$*"
+}
+
+function nosql_security_show() {
+
+echo "Security Mode: $NOSQL_SECURITY_MODE"
+
+}
+
+function purge_tmp_files(){
+set +e
+rm $PLAN
+rm $TMPLOG
+set -e
+}
+
+function purge_old_tmp_files() {
+set +e
+find $TMPDIR -name tmp.*nosqlplan -mtime +$PURGE_NUMDAYS -exec rm {} \; 2>/dev/null
+find $TMPDIR -name tmp.*nosqlstart -mtime +$PURGE_NUMDAYS -exec rm {} \; 2>/dev/null
+set -e
+}
+
+function check_recovery_on_start() {
+
+set +e
+
+REC_FILES_FOUND=`find /u*/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME/rg*/recovery -name *.jdb -type f 2>/dev/null | grep -c .jdb`
+
+if [ $REC_FILES_FOUND -gt 0 ]; then
+
+	echo "Files in Recovery folder: "
+	find /u*/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME/rg*/recovery -name *.jdb -type f 2>/dev/null
+
+	read -p "RECOVERY FOUND - Do you wish to continue:  [ YES ] " CONFIRM_RECOVERY
+
+	case $CONFIRM_RECOVERY in
+	YES)
+		return 0
+	;;
+	*)
+		echo "Quitting..."
+		exit 1
+	;;
+	esac
+
+fi
+
+set -e
+
+}
+
+function start_sna() {
+
+local PROGNAME=start_sna
+ lock $PROGNAME 101 || eexit "$PROGNAME is already running."
+#
+set +u
+if [ "$1" = "-disable-services" ]; then DISABLED_SERV=-disable-services; fi
+
+check_recovery_on_start
+
+nohup $JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar \
+start -root $KVROOT $DISABLED_SERV >$TMPLOG 2>&1 </dev/null &
+set -u
+
+echo "Starting SNA"
+
+}
+
+function status_sna() {
+
+set +e
+SNA_PID=`$LSOF -t -i:$NSQL_REGISTRY_PORT | grep -cv grep 2>/dev/null`
+set -e
+
+if [ $SNA_PID -gt 0 ]; then
+	echo "Storage Node Agent (SNA) is running."
+else
+	echo "Storage Node Agent (SNA) is not running."
+fi
+
+}
+
+function stop_sna() {
+
+set +eu
+if [ "$1" = "-disable-services" ]; then DISABLED_SERV=-disable-services; fi
+
+$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar stop -root $KVROOT $DISABLED_SERV 2>/dev/null \
+&& echo "SNA Stopped correctly" \
+|| echo "SNA Stopped with exit code $?"
+set -eu
+
+}
+
+function check_fs() {
+
+CONFIG_CAPACITY=`grep capacity $KVROOT/config.xml | awk '{print $3}' | awk -F'"' '{print $2}'`
+
+if [ $NUM_FS_MOUNTED -ge $CONFIG_CAPACITY ]; then
+
+	echo -en "Filesystem status: OK
+	Capacity configured: $CONFIG_CAPACITY
+	Num. FS mounted: $NUM_FS_MOUNTED\n"
+
+else
+
+	echo -en "Filesystem status: NOK
+	Capacity configured: $CONFIG_CAPACITY
+	Num. FS mounted: $NUM_FS_MOUNTED\n"
+
+fi
+
+}
+
+function checkup_low() {
+
+	status_sna
+	check_fs
+
+}
+
+function checkup_medium() {
+
+case $NOSQL_SECURITY_MODE in
+	pwdfile|wallet)
+	$JAVA -jar $KVHOME/lib/kvstore.jar ping -host `hostname` -port $NSQL_REGISTRY_PORT -security $KVROOT/$SECDIR/adminlogin 2>&1
+	;;
+	*)
+	$JAVA -jar $KVHOME/lib/kvstore.jar ping -host `hostname` -port $NSQL_REGISTRY_PORT 2>&1
+	;;
+esac
+
+}
+
+function checkup_mid_bygroup() {
+
+set +e
+OUTPUT_PLAN=`checkup_medium`
+set -e
+
+echo -en "$OUTPUT_PLAN" | grep -E 'Admin \[|Rep Node \[|Shard Status' | sort -k3
+
+}
+
+function nosql_runsql() {
+
+$RUNSQL
+
+}
+
+function nosql_runadmin() {
+
+$RUNADMIN
+
+}
+
+function runadmin_connected() {
+
+$RUNADMIN_CONNECTED
+
+}
+
+function nosql_runadmin_connected_plan() {
+
+$RUNADMIN_CONNECTED load -file $1
+
+}
+
+function nosql_runadmin_connected_store_plan() {
+
+$RUNADMIN_CONNECTED_STORE load -file $1
+
+}
+
+function nosql_runadmin_plan() {
+
+$RUNADMIN load -file $1
+
+}
+
+function nosql_runadmin_multipurpose() {
+
+nosql_determine_executables
+
+set +u
+MODE=$1
+PLAN=$2
+set -u
+
+case $MODE in
+connected)
+	nosql_runadmin_connected_plan $PLAN
+;;
+connected_store)
+	nosql_runadmin_connected_store_plan $PLAN
+;;
+noplan_connected)
+	runadmin_connected
+;;
+noplan)
+	nosql_runadmin
+;;
+*)
+	nosql_runadmin_plan $PLAN
+;;
+esac
+
+}
+
+function nosql_check_binaries() {
+
+$CLIENT_BUILD
+
+}
+
+function nosql_createadmin() {
+
+cat > $PLAN <<EOF
+plan create-user -name $USERNAME -password $APP_PARAMS -admin -wait
+EOF
+	# Early stage, it does not require multipurpose runadmin.
+	nosql_runadmin_plan $PLAN
+
+}
+
+
+function nosql_createusers() {
+
+for iii in `cat $NOSQLTAB | grep "^#_user_"`
+do
+USER_NAME=`echo $iii | awk -F':' '{print $2}'`
+USER_PASS=`echo $iii | awk -F':' '{print $3}'`
+cat > $PLAN <<EOF
+plan create-user -name $USER_NAME -password $USER_PASS -wait
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+done
+
+}
+
+
+function nosql_createstore() {
+
+cat > $PLAN <<EOF
+configure -name $1
+EOF
+
+	nosql_runadmin_plan $PLAN
+
+	nosql_createadmin
+
+}
+
+
+function checkup_high() {
+
+set +u
+if [ -z $1 ]; then
+
+cat > $PLAN <<EOF
+await-consistent -timeout 15
+EOF
+
+else
+
+	if [ -z $2 ]; then
+
+cat > $PLAN <<EOF
+await-consistent -timeout $1
+EOF
+
+	else
+
+cat > $PLAN <<EOF
+await-consistent -timeout $1 -znname "$2"
+EOF
+
+	fi
+
+fi
+
+set -u
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+
+function stop_and_clear_makebootconfig() {
+
+	set +e
+	stop_sna
+
+	sleep 5
+
+	rm -f $KVROOT/config.xml $KVROOT/security.policy 2>/dev/null
+	rm -f $KVROOT/*.log $KVROOT/*.lock 2>/dev/null
+	rm -rf /u0[1-9]*/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME/*
+	rm -rf /u[1-9][0-9]*/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME/*
+	rm -rf $KVROOT
+	set -e
+
+}
+
+
+function nosql_dropstore() {
+
+set +e
+for iii in `find $KVROOT -maxdepth 1 -type d -print 2>/dev/null | grep -v "^$KVROOT\$" | grep -v scripts`
+do
+	if [ ! "$iii" = "/" ];then
+	rm -rf $iii
+	fi
+done
+set -e
+
+}
+
+function nosql_reset() {
+
+	SERVERNAME=`hostname`
+
+	case $SERVERNAME in
+	mp*|mq*|mi*|md*)
+		## RESET -- PLEASE DO NOT REMOVE FOR PRODUCTION SYSTEMS !!!!!!!!!!!!!!! + QA
+		echo "Skipping reset"
+		exit 1
+	;;
+	*)
+
+		stop_and_clear_makebootconfig
+		nosql_dropstore
+
+	;;
+	esac
+
+}
+
+function makebootconfig() {
+
+#	stop_and_clear_makebootconfig
+
+SECURITY_MODE=" -store-security none "
+
+set +u
+case $1 in
+	wallet)
+		if [ "$NOSQL_EDITION" = "EE" ]; then SECURITY_MODE=" -store-security configure -pwdmgr wallet "; fi
+	;;
+	pwdfile)
+		SECURITY_MODE=" -store-security configure -pwdmgr pwdfile "
+	;;
+	*)
+		echo "Install option: $SECURITY_MODE"
+	;;
+	esac
+
+$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar makebootconfig \
+-root $KVROOT -port $NSQL_REGISTRY_PORT -host `hostname` -harange $NSQL_HARANGE \
+-servicerange $NSQL_SERVICERANGE \
+$SECURITY_MODE -secdir $SECDIR \
+-num_cpus 0 -memory_mb $NSQL_RAM_MB
+
+set -u
+
+}
+
+function nosql_remote_copy_sec() {
+
+SERVERNAME=$1
+
+	echo "Spreading Security Config files to $SERVERNAME ..."
+	ssh -q $SERVERNAME $BASH_LOGIN "kvctl hidden-install createdirs"
+	scp -qr $KVROOT/$SECDIR $SERVERNAME:$KVROOT
+	ssh -q $SERVERNAME $BASH_LOGIN "kvctl security enable $NOSQL_SECURITY_MODE"
+	sleep 3
+
+	echo "Starting Oracle NoSQL in server $SERVERNAME ..."
+    ssh -q $SERVERNAME $BASH_LOGIN "kvctl start"
+
+}
+
+function nosql_sec_enable() {
+
+SECURITY_MODE=" -store-security none "
+
+set +u
+case $1 in
+	wallet)
+		if [ "$NOSQL_EDITION" = "EE" ]; then SECURITY_MODE=" -store-security enable -pwdmgr wallet "; fi
+	;;
+	pwdfile)
+		SECURITY_MODE=" -store-security enable -pwdmgr pwdfile "
+	;;
+	none)
+		SECURITY_MODE=" -store-security none "
+	;;
+	*)
+		echo "Install option: $SECURITY_MODE"
+	;;
+	esac
+
+$JAVA -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar makebootconfig \
+-root $KVROOT -port $NSQL_REGISTRY_PORT -host `hostname` -harange $NSQL_HARANGE \
+-servicerange $NSQL_SERVICERANGE \
+$SECURITY_MODE -secdir $SECDIR \
+-num_cpus 0 -memory_mb $NSQL_RAM_MB
+
+}
+
+function nosql_copy_security() {
+
+set +u; NOSQL_SECURITY_MODE=$1; set -u
+
+## PART I
+
+for iii in `cat $NOSQLTAB | grep "^#_sn_" | grep -v "$HOSTNAME" | awk -F':' '{print $3}'`
+do
+	echo "Spreading Security Config files to $iii ..."
+	ssh -q $iii $BASH_LOGIN "kvctl hidden-install createdirs"
+	scp -qr $KVROOT/$SECDIR/ $iii:$KVROOT/
+	ssh -q $iii $BASH_LOGIN "kvctl security enable $NOSQL_SECURITY_MODE"
+done
+
+## PART II
+
+echo "Creating $NOSQL_SECURITY_MODE login file."
+
+case $NOSQL_SECURITY_MODE in
+	wallet)
+		java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar securityconfig wallet create -dir $KVROOT/security/login.wallet
+		
+		java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar securityconfig wallet secret -dir $KVROOT/security/login.wallet -set -alias $NOSQL_ADMIN_ALIAS
+		
+echo -en "
+#Security property settings for communication with KVStore servers
+oracle.kv.auth.username=$NOSQL_ADMIN_ALIAS
+oracle.kv.auth.wallet.dir=$KVROOT/security/login.wallet
+oracle.kv.transport=ssl
+oracle.kv.ssl.trustStore=$KVROOT/security/client.trust
+oracle.kv.ssl.protocols=TLSv1.2,TLSv1.1,TLSv1
+oracle.kv.ssl.hostnameVerifier=dnmatch(CN\=NoSQL)\n" > $KVROOT/$SECDIR/adminlogin
+
+	;;
+	pwdfile)
+		java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar securityconfig pwdfile create -file $KVROOT/security/login.passwd
+		
+		java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar securityconfig pwdfile secret -file $KVROOT/security/login.passwd -set -alias $NOSQL_ADMIN_ALIAS
+		
+echo -en "
+#Security property settings for communication with KVStore servers
+oracle.kv.auth.username=$NOSQL_ADMIN_ALIAS
+oracle.kv.auth.pwdfile.file=$KVROOT/security/login.passwd
+oracle.kv.transport=ssl
+oracle.kv.ssl.trustStore=$KVROOT/security/client.trust
+oracle.kv.ssl.protocols=TLSv1.2,TLSv1.1,TLSv1
+oracle.kv.ssl.hostnameVerifier=dnmatch(CN\=NoSQL)\n" > $KVROOT/$SECDIR/adminlogin
+		
+	;;
+	esac
+
+## PART III
+
+for iii in `cat $NOSQLTAB | grep "^#_sn_" | grep -v "$HOSTNAME" | awk -F':' '{print $3}'`
+do
+	echo "Copying created files to $iii "
+	scp -qr $KVROOT/$SECDIR/login.* $iii:$KVROOT/$SECDIR/
+	scp -qr $KVROOT/$SECDIR/adminlogin $iii:$KVROOT/$SECDIR/
+	#set +e; scp -qr $KVROOT/$SECDIR $SERVERNAME:$KVROOT; set -e;
+done
+
+}
+
+function nosql_create_dirs() {
+
+set +e
+[ ! -d $KVROOT ] && mkdir -p $KVROOT
+[ ! -d $TMPDIR ] && mkdir -p $TMPDIR
+set -e
+
+}
+
+function nosql_install() {
+
+	nosql_reset
+
+	set +u
+
+	SECURITY_OPTION=$1
+
+	nosql_create_dirs
+
+	makebootconfig $SECURITY_OPTION
+
+	nosql_determine_executables
+
+	start_sna
+
+	sleep 2
+
+	case $SECURITY_OPTION in
+	wallet|pwdfile)
+	
+		nosql_install_firstnode
+		
+		nosql_copy_security $SECURITY_OPTION
+		
+		for iii in `cat $NOSQLTAB | grep "^#_sn_" | grep -v "$HOSTNAME" | awk -F':' '{print $3}'`
+        do
+        echo "Starting Oracle NoSQL in server $iii ..."
+        ssh -q $iii $BASH_LOGIN "kvctl start"
+        done
+
+		;;
+	esac
+
+	set -u
+
+}
+
+
+function nosql_install_firstnode() {
+
+	sleep 1.2
+
+	nosql_createstore $DEFAULT_STORE_NAME
+
+}
+
+
+function nosql_deploy_nosqltab() {
+
+> $PLAN
+
+for iii in `cat $NOSQLTAB | grep "^#_zone_" | grep primary`
+do
+ZONE_NAME=`echo $iii | awk -F':' '{print $2}'`
+ZONE_RF=`echo $iii | awk -F':' '{print $3}'`
+ZONE_TYPE=`echo $iii | awk -F':' '{print $4}'`
+ZONE_ARBITER_MODE=`echo $iii | awk -F':' '{print $5}'`
+cat >> $PLAN <<EOF
+plan deploy-zone -name "$ZONE_NAME" -rf $ZONE_RF -type $ZONE_TYPE $ZONE_ARBITER_MODE -wait
+EOF
+done
+
+for iii in `cat $NOSQLTAB | grep "^#_zone_" | grep secondary`
+do
+ZONE_NAME=`echo $iii | awk -F':' '{print $2}'`
+ZONE_RF=`echo $iii | awk -F':' '{print $3}'`
+ZONE_TYPE=`echo $iii | awk -F':' '{print $4}'`
+cat >> $PLAN <<EOF
+plan deploy-zone -name "$ZONE_NAME" -rf $ZONE_RF -type $ZONE_TYPE -wait
+EOF
+done
+
+for iii in `cat $NOSQLTAB | grep "^#_pool_create_"`
+do
+POOL_NAME=`echo $iii | awk -F':' '{print $2}'`
+cat >> $PLAN <<EOF
+pool create -name $POOL_NAME
+EOF
+done
+
+
+COUNTER=1
+
+for iii in `cat $NOSQLTAB | grep "^#_sn_"`
+do
+ZONE_NAME=`echo $iii | awk -F':' '{print $2}'`
+SN_NAME=`echo $iii | awk -F':' '{print $3}'`
+SN_REGISTRY_PORT=`echo $iii | awk -F':' '{print $4}'`
+SN_ADMIN=`echo $iii | awk -F':' '{print $5}'`
+
+	if [ "$SN_ADMIN" = "admin" ]; then
+
+cat >> $PLAN <<EOF
+plan deploy-sn -znname "$ZONE_NAME" -host $SN_NAME -port $SN_REGISTRY_PORT -wait
+plan deploy-admin -sn sn$COUNTER -wait
+EOF
+
+	else
+
+cat >> $PLAN <<EOF
+plan deploy-sn -znname "$ZONE_NAME" -host $SN_NAME -port $SN_REGISTRY_PORT -wait
+EOF
+
+	fi
+
+# Enable Monitoring 
+# oracle.kv.impl.mgmt.snmp.SnmpAgent (Enterprise Edition)
+#plan change-parameters -service sn1 -wait -params \
+#mgmtClass=oracle.kv.impl.mgmt.snmp.SnmpAgent \
+#mgmtPollPort=5002 mgmtTrapHost=192.168.26.42
+#mgmtTrapPort=32767
+cat >> $PLAN <<EOF
+plan change-parameters -service sn$COUNTER  -wait -params mgmtClass="oracle.kv.impl.mgmt.jmx.JmxAgent"
+EOF
+
+# Dynamic storagedirs
+cat >> $PLAN <<EOF
+plan change-parameters -service sn$COUNTER -wait -params capacity=$NUM_FS_MOUNTED
+EOF
+
+for jjj in `seq 1 $NUM_FS_MOUNTED`
+do
+jjj=$(printf %02d $jjj)
+cat >> $PLAN <<EOF
+plan change-storagedir -sn sn$COUNTER -storagedir /u$jjj/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME -storagedirsize "$NSQL_FS_CAPACITY" -add -wait
+EOF
+done
+
+	let COUNTER++
+
+done
+
+for iii in `cat $NOSQLTAB | grep "^#_pool_join_"`
+do
+POOL_NAME=`echo $iii | awk -F':' '{print $2}'`
+SN_ID=`echo $iii | awk -F':' '{print $3}'`
+cat >> $PLAN <<EOF
+pool join -name $POOL_NAME -sn $SN_ID
+EOF
+done
+
+	echo -en "\nPlan file:\n\t$PLAN\n\n" && cat $PLAN
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+function nosql_deploy() {
+
+NUM_PRIMARY_SERVERS=0
+
+for iii in `cat $NOSQLTAB | grep "^#_zone_" | grep primary`
+do
+	ZONE_NAME=`echo $iii | awk -F':' '{print $2}'`
+	NUM_SERVERS_IN_PRI_ZONE=`grep -c "#_sn_:$ZONE_NAME" $NOSQLTAB`
+	#NUM_PRIMARY_SERVERS=`expr $NUM_PRIMARY_SERVERS + $NUM_SERVERS_IN_PRI_ZONE`
+	NUM_PRIMARY_SERVERS=$(awk "BEGIN {print $NUM_PRIMARY_SERVERS+$NUM_SERVERS_IN_PRI_ZONE; exit}")
+
+
+done
+
+NUM_SECONDARY_SERVERS=0
+
+for iii in `cat $NOSQLTAB | grep "^#_zone_" | grep secondary`
+do
+	ZONE_NAME=`echo $iii | awk -F':' '{print $2}'`
+	NUM_SERVERS_IN_SEC_ZONE=`grep -c "#_sn_:$ZONE_NAME" $NOSQLTAB`
+	#NUM_SECONDARY_SERVERS=`expr $NUM_SECONDARY_SERVERS + $NUM_SERVERS_IN_SEC_ZONE`
+	NUM_SECONDARY_SERVERS=$(awk "BEGIN {print $NUM_SECONDARY_SERVERS+$NUM_SERVERS_IN_SEC_ZONE; exit}")
+
+done
+
+NEW_TOPOLOGY_NAME="$NUM_PRIMARY_SERVERS.$NUM_SECONDARY_SERVERS-$EXEC_DATE"
+
+DEPLOY_PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+
+cat > $DEPLOY_PLAN <<EOF
+topology create -name $NEW_TOPOLOGY_NAME -pool $DEFAULT_DEPLOY_POOL -partitions $DEFAULT_NUM_PARTITIONS
+EOF
+
+	echo -en "\nPlan file:\n\t$DEPLOY_PLAN\n\n" && cat $DEPLOY_PLAN
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+set +u
+if [ "$1" = "-p" ]; then
+
+cat > $DEPLOY_PLAN <<EOF
+topology preview -name $NEW_TOPOLOGY_NAME
+EOF
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+pause 'Press [Enter] key to continue ...'
+
+fi
+set -u
+
+DEPLOY_PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+
+cat >> $DEPLOY_PLAN <<EOF
+plan deploy-topology -name $NEW_TOPOLOGY_NAME
+EOF
+
+	echo -en "\nPlan file:\n\t$DEPLOY_PLAN\n\n" && cat $DEPLOY_PLAN
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+LAST_LOG=`ls -rt $KVROOT/$DEFAULT_STORE_NAME/log/$DEFAULT_STORE_NAME*.log | tail -1`
+
+echo -en "\nExecuting the deployment, topology $NEW_TOPOLOGY_NAME ...
+to monitor, execute:\n
+tail -f $LAST_LOG\n\n"
+
+}
+
+
+function nosql_logtail() {
+
+LAST_LOG=`ls -rt $KVROOT/$DEFAULT_STORE_NAME/log/$DEFAULT_STORE_NAME*.log | tail -1`
+
+set +u
+# Force numeric instead of checking -z null.
+if [ -z $1 ]; then
+	tail -$1 $LAST_LOG
+else
+	tail -100 $LAST_LOG
+fi
+set -u
+
+}
+
+function nosql_show() {
+
+#echo "Params: $*"
+
+set +u
+cat > $PLAN <<EOF
+show $*
+EOF
+set -u
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+function nosql_memory_tuning() {
+
+cat >> $PLAN <<EOF
+plan change-parameters -all-rns -params javaMiscParams="-server -d64
+-XX:+UseCompressedOops 
+-XX:+AlwaysPreTouch -Xms${1}m -Xmx${2}m
+-XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
+-XX:+PrintGCDetails -XX:+PrintGCTimeStamps
+-Xloggc:$KVROOT/$DEFAULT_STORE_NAME/log/gc-kv.log";
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+function nosql_list_backup() {
+
+    for backup in $(ls -rt $KVROOT/$DEFAULT_STORE_NAME/sn*/admin*/snapshots 2>/dev/null); do
+      echo $backup
+    done
+
+}
+
+function nosql_check_backup() {
+
+    ERROR_FOUND=0
+
+    for service in $(find /u[0-9][0-9] -name snapshots); do
+        if [ ! -d "$service/$1" ]; then
+		echo "Backup $1 is not available for the service: $service"
+		ERROR_FOUND=1
+		fi
+    done
+	
+	if [ $ERROR_FOUND -eq 1 ]; then eexit "Some backups are not available. Quitting."; fi
+
+}
+
+function nosql_recovery_helper() {
+
+    if [ -z $1 ]; then
+        eexit "Provide a backup as parameter"
+    else
+        BACKUPNAME=$1
+    fi
+
+	nosql_check_backup $BACKUPNAME
+	
+	ACTUAL_STATUS=`ssh -q $HOSTNAME $BASH_LOGIN "kvctl status"`
+	
+	echo -en "\nBefore performing the recovery, SNA should be stopped first in all nodes.
+	\n Actual SNA Status: $ACTUAL_STATUS \n Execute the following commands locally in $HOSTNAME:\n"
+	
+    for path in $(find /u[0-9][0-9] -name $BACKUPNAME); do
+		REMOVE_NAME=$path; REMOVE_NAME=${REMOVE_NAME/snapshots/recovery}
+		BKP_NAME=`basename $REMOVE_NAME`; DIRNAME=${REMOVE_NAME/$BKP_NAME/}
+		echo "mkdir -p $DIRNAME"
+		echo "mv $path ${path/snapshots/recovery}"
+    done
+
+}
+
+function nosql_backup() {
+
+set +u
+
+if [ -z $1 ]; then
+
+BACKUP_NAME=bkp_$EXEC_DATE
+
+elif [ "$1" = "list" ]; then
+
+echo "Available backups:"
+set +e
+nosql_list_backup
+set -e
+
+return 0
+
+else
+
+BACKUP_NAME=$1
+
+fi
+
+if [ -z $2 ]; then
+
+cat > $PLAN <<EOF
+snapshot create -name $BACKUP_NAME
+EOF
+
+else
+
+cat > $PLAN <<EOF
+snapshot create -name $BACKUP_NAME -znname $2
+EOF
+
+fi
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+set -u
+
+}
+
+function nosql_backup_purge() {
+
+set +u
+
+if [ -z $2 ]; then
+
+	if [ "$1" = "-all" ]; then
+
+	BACKUP_NAME="$1"
+
+	else
+
+	BACKUP_NAME="-name $1"
+
+	fi
+
+cat > $PLAN <<EOF
+snapshot remove $BACKUP_NAME
+EOF
+
+else
+
+	if [ "$1" = "-all" ]; then
+
+cat > $PLAN <<EOF
+snapshot remove $1 -znname "$2"
+EOF
+
+	else
+
+cat > $PLAN <<EOF
+snapshot remove -name $1 -znname "$2"
+EOF
+
+	fi
+
+fi
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+set -u
+
+}
+
+
+
+function nosql_create_topo() {
+
+DEPLOY_PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+
+set +e
+
+cat > $DEPLOY_PLAN <<EOF
+topology delete -name $1
+EOF
+
+IGNORING_OUTPUT=`nosql_runadmin_multipurpose connected $DEPLOY_PLAN`
+
+set -e
+
+cat > $DEPLOY_PLAN <<EOF
+topology clone -current -name $1
+EOF
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+}
+
+
+function nosql_modif_sw_topo() {
+
+
+DEPLOY_PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+
+for iii in `cat $NOSQLTAB | grep "^##_swtopo_config" | grep change-zone-type`
+do
+
+	ZONE_NAME=`echo $iii | awk -F':' '{print $3}'`
+	ZONE_ROLE=`echo $iii | awk -F':' '{print $4}'`
+
+cat >> $DEPLOY_PLAN <<EOF
+topology change-zone-type -name $SWITCHOVERTOPO -znname $ZONE_NAME -type $ZONE_ROLE
+EOF
+
+done
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+}
+
+function nosql_modif_swback_topo() {
+
+nosql_create_topo $SWITCHBACKTOPO
+
+DEPLOY_PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+
+for iii in `cat $NOSQLTAB | grep "^###_swback_config" | grep change-zone-type`
+do
+
+	ZONE_NAME=`echo $iii | awk -F':' '{print $3}'`
+	ZONE_ROLE=`echo $iii | awk -F':' '{print $4}'`
+
+cat >> $DEPLOY_PLAN <<EOF
+topology change-zone-type -name $SWITCHBACKTOPO -znname $ZONE_NAME -type $ZONE_ROLE
+EOF
+
+done
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+}
+
+function nosql_exec_sw_topo() {
+
+set +u
+
+DEPLOY_PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan --tmpdir=$TMPDIR`
+
+if [ "$2" = "-p" ]; then
+
+cat > $DEPLOY_PLAN <<EOF
+topology preview -name $1
+EOF
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+pause 'Press [Enter] key to continue...'
+
+fi
+
+set -u
+
+echo "Repairing Topology..."
+cat > $DEPLOY_PLAN <<EOF
+plan repair-topology -wait
+EOF
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+
+cat > $DEPLOY_PLAN <<EOF
+await-consistent -timeout $MAXCATCHUPTIME_SECS
+EOF
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN || eexit "$1 cannot continue, Store is not consistent."
+
+cat > $DEPLOY_PLAN <<EOF
+plan deploy-topology -name $1 -wait
+EOF
+
+	echo -en "\nPlan file:\n\t$DEPLOY_PLAN\n\n" && cat $DEPLOY_PLAN
+
+	nosql_runadmin_multipurpose connected $DEPLOY_PLAN
+
+SW_RETURN_CODE=$?
+
+echo "--> Switchover finished, exit code $SW_RETURN_CODE"
+
+pause 'Press [Enter] key to continue...'
+
+checkup_medium
+
+return $SW_RETURN_CODE
+
+}
+
+
+function nosql_switchover() {
+
+local PROGNAME=Switch
+ lock $PROGNAME 102 || eexit "$PROGNAME is on-going. Double-check the status manually, E.g. kvctl mid"
+
+cat > $PLAN <<EOF
+verify configuration
+EOF
+
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected $PLAN`
+
+echo -en "$OUTPUT_PLAN" > $PLAN
+
+MAXCATCHUPTIME_SECS=`grep "PRIMARY" $PLAN | grep -v "Logged" | grep -v "Redirecting" | grep maxCatchupTimeSecs | awk '{print $12}' | awk -F':' '{print $2}'`
+MAXCATCHUPTIME_SECS=`expr $MAXCATCHUPTIME_SECS + 10`
+
+ZONE=`cat $NOSQLTAB | grep "^##_swtopo_config" | grep secondary | awk -F':' '{print $3}'`
+
+set +e
+SWITCHED_TOPO=`grep "Verify: Zone" $PLAN | grep -v "Logged" | grep -v "Redirecting" | grep "PRIMARY" | grep -c "$ZONE"`
+set -e
+
+if [ $SWITCHED_TOPO -eq 1 ]; then
+
+echo "Switching over"
+
+nosql_create_topo $SWITCHBACKTOPO
+
+nosql_create_topo $SWITCHOVERTOPO
+
+nosql_modif_sw_topo
+
+set +u
+nosql_exec_sw_topo $SWITCHOVERTOPO $1 $MAXCATCHUPTIME_SECS
+set -u
+
+else
+
+echo "Switching back"
+
+	set +u
+	if nosql_exec_sw_topo $SWITCHBACKTOPO $1 $MAXCATCHUPTIME_SECS; then
+		echo "Succedded"
+	else
+		echo "Exit code: $?, Modifying $SWITCHBACKTOPO and retrying"
+		nosql_modif_swback_topo
+		nosql_exec_sw_topo $SWITCHBACKTOPO $1 $MAXCATCHUPTIME_SECS;
+	fi
+	set -u
+
+fi
+
+}
+
+
+function nosql_find_services_in_filesystem() {
+
+basename `find $1/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME/rg*-rn* -maxdepth 0 -type d 2>/dev/null`
+
+}
+
+function nosql_stop_service() {
+
+case $1 in
+/*)
+	SERVICE_NAME=`nosql_find_services_in_filesystem $1`
+;;
+*)
+	SERVICE_NAME=$1
+;;
+esac
+
+cat > $PLAN <<EOF
+plan stop-service -service $SERVICE_NAME -wait
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+function nosql_start_service() {
+
+case $1 in
+/*)
+	SERVICE_NAME=`nosql_find_services_in_filesystem $1`
+;;
+*)
+	SERVICE_NAME=$1
+;;
+esac
+
+cat > $PLAN <<EOF
+plan start-service -service $SERVICE_NAME -wait
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+
+function nosql_calc_zone_rep_factor() {
+
+COUNTER=0
+
+ZONE_NAME=`cat $NOSQLTAB | grep "^#_zone_" | grep $1 | awk -F':' '{print $2}'`
+
+  for jjj in `cat $NOSQLTAB | grep "^#_sn_:$ZONE_NAME"`
+  do
+    let COUNTER++
+  done
+
+if [ $COUNTER -ge $DEFAULT_MAX_REP_FACTOR ]; then
+    COUNTER=$DEFAULT_MAX_REP_FACTOR
+elif [ $COUNTER -eq 0 ]; then
+	COUNTER=$DEFAULT_MAX_REP_FACTOR
+fi
+
+echo $COUNTER
+
+}
+
+function nosql_calc_max_sn_number() {
+
+PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan_calc_max_sn_number --tmpdir=$TMPDIR`
+
+cat > $PLAN <<EOF
+verify configuration
+EOF
+
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected $PLAN`
+
+echo -en "$OUTPUT_PLAN" >> $PLAN
+
+MAX_SN_NUMBER=`grep "Storage Node" $PLAN | awk -F'[' '{print $2}' | awk -F']' '{print $1}' | tr -d "sn" | sort -n | tail -1`
+
+MAX_SN_NUMBER=`expr $MAX_SN_NUMBER + 1`
+
+echo $MAX_SN_NUMBER
+
+}
+
+function nosql_add_node() {
+
+PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan_add_node --tmpdir=$TMPDIR`
+
+NEW_NODE=`cat $NOSQLTAB | grep "^#_sn_:" | grep $1`
+	ZONE_NAME=`echo $NEW_NODE | awk -F':' '{print $2}'`
+	SN_REGISTRY_PORT=`echo $NEW_NODE | awk -F':' '{print $4}'`
+	SN_ADMIN=`echo $NEW_NODE | awk -F':' '{print $5}'`
+
+if [ "$SN_ADMIN" = "admin" ]; then
+
+cat > $PLAN <<EOF
+plan deploy-sn -znname "$ZONE_NAME" -host $1 -port $SN_REGISTRY_PORT -wait
+plan deploy-admin -sn sn$2 -wait
+EOF
+
+else
+
+cat >> $PLAN <<EOF
+plan deploy-sn -znname "$ZONE_NAME" -host $1 -port $SN_REGISTRY_PORT -wait
+EOF
+
+fi
+
+
+# Enable Monitoring
+cat >> $PLAN <<EOF
+plan change-parameters -service sn$2  -wait -params mgmtClass="oracle.kv.impl.mgmt.jmx.JmxAgent"
+EOF
+
+# Dynamic storagedirs
+cat >> $PLAN <<EOF
+plan change-parameters -service sn$2 -wait -params capacity=$NUM_FS_MOUNTED
+EOF
+
+for jjj in `seq 1 $NUM_FS_MOUNTED`
+do
+jjj=$(printf %02d $jjj)
+cat >> $PLAN <<EOF
+plan change-storagedir -sn sn$2 -storagedir /u$jjj/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME -storagedirsize "$NSQL_FS_CAPACITY" -add -wait
+EOF
+done
+
+
+POOL_NAME=`grep "^#_pool_join_" $NOSQLTAB | grep sn$2 | awk -F':' '{print $2}'`
+cat >> $PLAN <<EOF
+pool join -name $POOL_NAME -sn sn$2
+EOF
+
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+function nosql_new_nodes_to_add() {
+
+ZONE_NAME=$1
+
+PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan_new_nodes_to_add --tmpdir=$TMPDIR`
+TMPLOG=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlstart_new_nodes_to_add --tmpdir=$TMPDIR`
+
+cat $NOSQLTAB | grep "^#_sn_:$ZONE_NAME" | awk -F':' '{print $3}' > $PLAN
+
+cat > $TMPLOG <<EOF
+verify configuration
+EOF
+
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected $TMPLOG`
+echo -en "$OUTPUT_PLAN" >> $TMPLOG
+
+for iii in `grep "Storage Node" $TMPLOG | awk -F'] on ' '{print $2}' | awk -F':' '{print $1}'`
+do
+
+	sed -i "/$iii/d" $PLAN
+
+done
+
+cat $PLAN
+
+}
+
+function nosql_cluster_extend() {
+
+set -u; ZONE_NAME=$1
+
+NEW_RF=`nosql_calc_zone_rep_factor $ZONE_NAME`
+
+for iii in `nosql_new_nodes_to_add $ZONE_NAME`
+do
+
+MAX_SN_NUMBER=`nosql_calc_max_sn_number`
+
+# If security is ON, distribute security directory.
+case $NOSQL_SECURITY_MODE in
+pwdfile|wallet)
+  nosql_remote_copy_sec $iii
+;;
+esac
+
+nosql_add_node $iii $MAX_SN_NUMBER
+
+done
+
+nosql_create_topo $EXTENDCLUSTERTOPO
+
+PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan_cluster_extend --tmpdir=$TMPDIR`
+
+cat > $PLAN <<EOF
+topology change-repfactor -name $EXTENDCLUSTERTOPO -pool $DEFAULT_DEPLOY_POOL -rf $NEW_RF -znname "$ZONE_NAME"
+topology redistribute -name $EXTENDCLUSTERTOPO -pool $DEFAULT_DEPLOY_POOL
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+set +u
+if [ "$2" = "-p" ]; then
+
+DEPLOY_PLAN=`mktemp --suffix=nosqldeployplan_cluster_extend --tmpdir=$TMPDIR`
+
+cat > $DEPLOY_PLAN <<EOF
+topology preview -name $EXTENDCLUSTERTOPO
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+pause 'Press [Enter] key to continue...'
+
+fi
+set -u
+
+PLAN=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlplan_cluster_extend --tmpdir=$TMPDIR`
+
+cat > $PLAN <<EOF
+plan deploy-topology -name $EXTENDCLUSTERTOPO -wait
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+
+
+
+function nosql_probe() {
+
+set +u
+if [ -z $1 ]; then
+NUM_ROWS=100
+else NUM_ROWS=$1
+fi
+set -u
+
+SQL_PLAN=`mktemp --suffix=$TABLE_NAME.$NUM_ROWS.nosqlplan --tmpdir=$TMPDIR`
+
+echo "
+create table if not exists $TABLE_NAME (
+  id STRING,
+  person STRING,
+  primary key (id)
+); 
+" > $SQL_PLAN
+
+case $NOSQL_SECURITY_MODE in
+pwdfile|wallet)
+nosql_runsql <<EOF
+timer on
+load -file $SQL_PLAN
+EOF
+;;
+*)
+nosql_runsql <<EOF
+connect -host $HOSTNAME -port $NSQL_REGISTRY_PORT -name $DEFAULT_STORE_NAME -username $USERNAME
+timer on
+load -file $SQL_PLAN
+EOF
+;;
+esac
+
+COUNTER=0
+
+while true
+do
+	SUBCOUNTER=0
+	
+	for iii in `seq 1 $NUM_ROWS`
+	do
+		if [ $SUBCOUNTER -eq 0 ]; then > $SQL_PLAN; fi
+	let SUBCOUNTER++ && echo $SUBCOUNTER 1>/dev/null
+		UUID=`dbus-uuidgen`
+		echo "{\"id\":\"$UUID\",\"person\":\"$UUID\"}" >> $SQL_PLAN
+	done
+
+	COUNTER=`expr $COUNTER + $NUM_ROWS`
+
+case $NOSQL_SECURITY_MODE in
+pwdfile|wallet)
+nosql_runsql <<EOF
+timer on
+import -table $TABLE_NAME -file $SQL_PLAN
+EOF
+;;
+*)
+nosql_runsql <<EOF
+connect -host $HOSTNAME -port $NSQL_REGISTRY_PORT -name $DEFAULT_STORE_NAME -username $USERNAME
+timer on
+import -table $TABLE_NAME -file $SQL_PLAN
+EOF
+;;
+esac
+
+echo -en "$COUNTER\n"
+
+done
+
+}
+
+
+function nosql_probe_cleanup() {
+
+case $NOSQL_SECURITY_MODE in
+pwdfile|wallet)
+nosql_runsql <<EOF
+timer on
+drop table if exists $TABLE_NAME;
+EOF
+;;
+*)
+nosql_runsql <<EOF
+connect -host $HOSTNAME -port $NSQL_REGISTRY_PORT -name $DEFAULT_STORE_NAME -username $USERNAME
+timer on
+drop table if exists $TABLE_NAME;
+EOF
+;;
+esac
+
+}
+
+function diag_setup_gen_sn_target_list_file() {
+
+WHOAMI=`whoami`
+COUNTER=0
+
+for iii in `cat $NOSQLTAB | grep "^#_sn_"`
+do
+SN_NAME=`echo $iii | awk -F':' '{print $3}'`
+set +e; TEMP_SN_ID=`ssh -q $SN_NAME $BASH_LOGIN "which kvctl 1>/dev/null 2>&1; grep storageNodeId $KVROOT/$DEFAULT_STORE_NAME/sn*/config.xml | head -1"`; set -e;
+SN_ID=`echo $TEMP_SN_ID | awk -F'\"' '{print \$4}'`
+
+if [ $COUNTER -eq 0 ]; then
+echo "$DEFAULT_STORE_NAME|sn${SN_ID}|${WHOAMI}@${SN_NAME}|$KVROOT" > sn-target-list
+else
+echo "$DEFAULT_STORE_NAME|sn${SN_ID}|${WHOAMI}@${SN_NAME}|$KVROOT" >> sn-target-list
+fi
+
+COUNTER=`expr $COUNTER + 1`
+
+done
+
+}
+
+diag_cleanup() {
+
+set +e
+rm sn-target-list 2>/dev/null; rm ~/sn-target-list 2>/dev/null
+set -e
+
+}
+
+function diag_setup() {
+
+if [ -f sn-target-list ]; then
+	set +u
+	if [ "$1" = "-f" ]; then
+	diag_setup_gen_sn_target_list_file || diag_cleanup
+	fi
+else
+diag_setup_gen_sn_target_list_file || diag_cleanup
+fi
+
+}
+
+function diag_verify() {
+
+case $1 in
+local)
+	$RUNDIAG verify -checkLocal
+;;
+multi)
+	$RUNDIAG verify -checkMulti
+;;
+esac
+
+
+}
+
+function diag_list() {
+
+$RUNDIAG setup -list | grep -E 'Store:|Total:'
+
+}
+
+function diag_collect() {
+
+$RUNDIAG collect -logfiles
+
+}
+
+function diag_exec() {
+
+diag_setup
+
+set +eu
+case $1 in
+collect)
+	diag_collect
+;;
+verify)
+	case $2 in
+	local|multi)
+		diag_verify $2
+	;;
+	esac
+;;
+list)
+	diag_list
+;;
+esac
+set -eu
+
+diag_cleanup
+
+}
+
+
+
+function send_snmptrap() {
+
+SNMPHOST=$1
+#Available levels: =~ CRITICAL WARNING CLEAR
+CRITICITY=$2
+FULL_TIMESTAMP=`date +%Y%m%d%H%M%S`
+METRIC_CATEGORY=$3
+METRIC_NAME=$4
+METRIC_VALUE=$5
+
+set +eu
+if [ $# -eq 5 ]; then
+snmptrap -v 2c -c public $SNMPHOST '' .1.3.6.1.4.1.240.240.240 .1.3.6.1.4.1.240.240.240 s \
+"ONSQL:$HOSTNAME:$DEFAULT_STORE_NAME:$CRITICITY:$FULL_TIMESTAMP:$METRIC_CATEGORY:$METRIC_NAME:$METRIC_VALUE"
+else
+echo "Not enough parameters (4 needed): $@"
+fi
+set -eu
+
+}
+
+function monitor_basic() {
+
+cat > $TMPLOG <<EOF
+verify configuration
+EOF
+
+set +eu
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected $TMPLOG`
+set -eu
+
+echo -en "$OUTPUT_PLAN" >> $TMPLOG
+
+for iii in `grep "SNMPHOST" $NOSQLTAB | awk -F'=' '{print $2}'`
+do
+
+        for sss in `cat $TMPLOG | grep "Rep Node" | awk '{print $4$6}' | sed 's/]/,/g' | tr -d "["`
+        do
+
+        SERVICE_NAME=`echo $sss | awk -F',' '{print $1}'`
+        SERVICE_STATUS=`echo $sss | awk -F',' '{print $2}'`
+
+        echo "EndPoint: $iii Service Name: $SERVICE_NAME with Status: $SERVICE_STATUS"
+
+                case $SERVICE_STATUS in
+                RUNNING)
+					[ -f $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME ] && send_snmptrap $iii CLEAR Availability Status $SERVICE_NAME:$SERVICE_STATUS:OK
+					set +e; rm $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME 2>/dev/null ; set -e;
+                ;;
+                UNREACHABLE)
+                        send_snmptrap $iii CRITICAL Availability Status $SERVICE_NAME:$SERVICE_STATUS:NOK
+						touch $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME
+                ;;
+                *)
+                        send_snmptrap $iii CRITICAL Availability Status $SERVICE_NAME:$SERVICE_STATUS:NOK
+						touch $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME
+                ;;
+                esac
+
+        done
+
+        for sss in `cat $TMPLOG | grep "Admin \[" | awk '{print $3":"$5}' | tr -d "[]" | awk -F',' '{print $1}'`
+        do
+
+        SERVICE_NAME=`echo $sss | awk -F':' '{print $1}'`
+        SERVICE_STATUS=`echo $sss | awk -F':' '{print $2}'`
+
+        echo "EndPoint: $iii Service Name: $SERVICE_NAME with Status: $SERVICE_STATUS"
+
+                case $SERVICE_STATUS in
+                RUNNING)
+                        [ -f $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME ] && send_snmptrap $iii CLEAR Availability Status $SERVICE_NAME:$SERVICE_STATUS:OK
+						set +e; rm $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME 2>/dev/null; set -e;
+                ;;
+                UNREACHABLE)
+                        send_snmptrap $iii CRITICAL Availability Status $SERVICE_NAME:$SERVICE_STATUS:NOK
+						touch $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME
+                ;;
+                *)
+                        send_snmptrap $iii CRITICAL Availability Status $SERVICE_NAME:$SERVICE_STATUS:NOK
+						touch $TMPDIR/$DEFAULT_STORE_NAME.$SERVICE_NAME
+                ;;
+                esac
+
+        done
+
+done
+
+
+}
+
+function monitor_extended_multi_metric() {
+
+IFS=';=' read -r -a groupvar <<< "$2"
+
+COUNTER=0
+while [ $COUNTER -lt ${#groupvar[@]} ]
+do
+ echo "$HOSTNAME.$DEFAULT_STORE_NAME.$SERVICE_NAME.$1.${groupvar[$COUNTER]} ${groupvar[`expr $COUNTER + 1`]} $METRIC_TIMESTAMP"
+ COUNTER=`expr $COUNTER + 2`
+done
+
+}
+
+function monitor_extended() {
+
+for i in `set +e \
+&& find /u*/$DEFAULT_DATA_SUFFIX/$DEFAULT_STORE_NAME -name je.stat.csv 2>/dev/null \
+&& find $KVROOT/$DEFAULT_STORE_NAME/sn*/admin*/env -name je.stat.csv 2>/dev/null \
+&& set -e`
+do
+
+ [[ ${i} =~ admin ]] && SERVICE_NAME=`echo "$i" | awk -F'/' '{print $8}'` || SERVICE_NAME=`echo "$i" | awk -F'/' '{print $4}'`
+
+ METRIC_HEADERS=`head -1 $i | tr " ,/" "-"`; IFS=':' read -r -a headers <<< "$METRIC_HEADERS";
+ METRIC_VALUES_ALL=`tail -1 $i`; IFS=',' read -r -a values <<< "$METRIC_VALUES_ALL";
+
+ for j in "${!values[@]}"
+ do
+
+	[ $j -eq 0 ] && METRIC_TIMESTAMP=`date --date="${values[j]}" +"%s"` \
+	|| (if [[ ${values[j]} =~ \; ]] && [[ ! "${values[j]}" == " " ]]; then monitor_extended_multi_metric "${headers[j]}" "${values[j]}" $METRIC_TIMESTAMP
+	elif [[ ! "${values[j]}" == " " ]]; then echo "$HOSTNAME.$DEFAULT_STORE_NAME.$SERVICE_NAME.${headers[j]} ${values[j]} $METRIC_TIMESTAMP"; fi)
+
+ done
+
+done
+
+}
+
+
+function monitor_os() {
+
+METRIC_TIMESTAMP=`date +%s`
+METRIC_CATEGORY=OS
+
+METRIC_NAME="RAM_MB_Available"
+METRIC_VALUE=`free -mwl | grep "Mem:" | awk '{print $8}'`
+
+echo "$HOSTNAME.$METRIC_CATEGORY.$METRIC_NAME $METRIC_VALUE $METRIC_TIMESTAMP"
+
+METRIC_NAME="RAM_MB_Used"
+METRIC_VALUE=`free -mwl | grep "Mem:" | awk '{print $3}'`
+
+echo "$HOSTNAME.$METRIC_CATEGORY.$METRIC_NAME $METRIC_VALUE $METRIC_TIMESTAMP"
+
+METRIC_NAME="Total_IOPS"
+METRIC_VALUE=`iostat -d | grep -v \`date +%Y\` | awk '{print $2}' | grep -v "tps" | grep -v "^$" | awk 'BEGIN {total=0} {total+=$1}END {printf("%.2f\n",total)}'`
+
+echo "$HOSTNAME.$METRIC_CATEGORY.$METRIC_NAME $METRIC_VALUE $METRIC_TIMESTAMP"
+
+METRIC_NAME="All_CPUs_Max_Load"
+METRIC_VALUE=`iostat -c 1 2 | tail -2 | awk '{print $1}'`
+
+echo "$HOSTNAME.$METRIC_CATEGORY.$METRIC_NAME $METRIC_VALUE $METRIC_TIMESTAMP"
+
+}
+
+
+function nosql_export_create_config_file() {
+
+if [ -d $NOSQL_EXPORT_DIR ]; then
+
+	tree $NOSQL_EXPORT_DIR
+
+	read -p "Do you wish to overwrite the files above ? : [ YES ] " CONFIRM_RECOVERY
+
+	case $CONFIRM_RECOVERY in
+	YES)
+		pause "Before continuing please delete previous files in the default export dir:  $NOSQL_EXPORT_DIR"
+		return 0
+	;;
+	*)
+		echo "Quitting..."
+		exit 1
+	;;
+	esac
+
+fi
+
+mkdir -p $NOSQL_EXPORT_DIR
+
+echo "
+# export-config.txt
+export-type = LOCAL
+export-package-path = $NOSQL_EXPORT_DIR
+" > $NOSQL_EXPORT_DIR/export-config.txt
+
+}
+
+function nosql_export() {
+
+	nosql_export_create_config_file
+
+set +u
+[ -z $1 ] && EXPORT_MODE="-export-all" || EXPORT_MODE="-table $1"
+set -u
+
+case $NOSQL_SECURITY_MODE in
+  wallet|pwdfile)
+    java -Xms1024m -Xmx1024m -jar $KVHOME/lib/kvtool.jar export \
+    $EXPORT_MODE -store $DEFAULT_STORE_NAME \
+    -helper-hosts $HOSTNAME:$NSQL_REGISTRY_PORT \
+    -config $NOSQL_EXPORT_DIR/export-config.txt \
+	-security $KVROOT/$SECDIR/adminlogin
+;;
+  *)
+    java -Xms1024m -Xmx1024m -jar $KVHOME/lib/kvtool.jar export \
+    $EXPORT_MODE -store $DEFAULT_STORE_NAME \
+    -helper-hosts $HOSTNAME:$NSQL_REGISTRY_PORT \
+    -config $NOSQL_EXPORT_DIR/export-config.txt
+;;
+esac
+
+}
+
+function nosql_import() {
+
+	nosql_export_create_config_file
+
+set +u
+[ -z $1 ] && IMPORT_MODE="-import-all" || IMPORT_MODE="-table $1"
+set -u
+
+#touch $NOSQL_EXPORT_DIR/import-status.txt
+
+case $NOSQL_SECURITY_MODE in
+  wallet|pwdfile)
+    java -Xms1024m -Xmx1024m -jar $KVHOME/lib/kvtool.jar import \
+    $IMPORT_MODE -store $DEFAULT_STORE_NAME -timeout $TIMEOUT_MS \
+    -helper-hosts $HOSTNAME:$NSQL_REGISTRY_PORT \
+    -config $NOSQL_EXPORT_DIR/export-config.txt \
+	-security $KVROOT/$SECDIR/adminlogin
+;;
+  *)
+    java -Xms1024m -Xmx1024m -jar $KVHOME/lib/kvtool.jar import \
+    $IMPORT_MODE -store $DEFAULT_STORE_NAME -timeout $TIMEOUT_MS \
+    -helper-hosts $HOSTNAME:$NSQL_REGISTRY_PORT \
+    -config $NOSQL_EXPORT_DIR/export-config.txt
+;;
+esac
+
+#-status import-status.txt
+
+}
+
+function check_master_admin() {
+
+set +eu
+
+cat > $TMPLOG <<EOF
+verify configuration
+EOF
+
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected $TMPLOG`
+echo -en "$OUTPUT_PLAN" >> $TMPLOG
+
+ADMIN_MODE=`grep -A 1 $HOSTNAME $TMPLOG | grep "Admin \[" | awk '{print $5}' | cut -d',' -f2`
+
+set -eu
+
+if [ "$ADMIN_MODE" = "REPLICA" ]; then
+	echo "This command only works on the Admin MASTER"
+	exit 1
+fi
+
+}
+
+
+function snap_role_distrib() {
+
+check_master_admin
+
+set +eu
+COUNT_UNREACHABLE=`grep -c "UNREACHABLE" $TMPLOG`
+FOUND_NO_VIOLATIONS=`grep -c ", no violations." $TMPLOG`
+
+#echo $COUNT_UNREACHABLE $FOUND_NO_VIOLATIONS
+
+[ $COUNT_UNREACHABLE -gt 0 ]    && eexit "$COUNT_UNREACHABLE - UNREACHABLE targets found"
+[ $FOUND_NO_VIOLATIONS -eq 1 ]  || eexit "$FOUND_NO_VIOLATIONS Violations found"
+
+set -eu
+
+cp $TMPLOG /u00/app/oracle/local/dba/etc/snap_role_distrib.$DEFAULT_STORE_NAME
+
+echo "Created: " `ls -l /u00/app/oracle/local/dba/etc/snap_role_distrib.$DEFAULT_STORE_NAME`
+
+}
+
+function count_table() {
+
+METRIC_TIMESTAMP=`date +%s`
+METRIC_CATEGORY=Data
+METRIC_NAME=UserTablesNum_Rows
+
+TMPLOG=`mktemp --suffix=${DEFAULT_STORE_NAME}.nosqlstart --tmpdir=$TMPDIR`
+
+cat > $TMPLOG <<EOF
+aggregate table -name ${1} -count;
+EOF
+
+TABLE_NAME=`echo ${1} | tr -d "."`
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected_store $TMPLOG`
+METRIC_VALUE=`echo -en "$OUTPUT_PLAN" | grep -v "Logged" | grep -v "SYS" \
+| grep -v "Redirecting" | tr -d "Row count:"`
+
+	echo "$DEFAULT_STORE_NAME $TABLE_NAME $METRIC_VALUE"
+
+	echo "$DEFAULT_STORE_NAME.$METRIC_CATEGORY.$METRIC_NAME.$TABLE_NAME $METRIC_VALUE $METRIC_TIMESTAMP" | /bin/nc $NC_HOST $NC_PORT > /dev/null
+
+}
+
+function monitor_show_tables() {
+
+cat > $TMPLOG <<EOF
+show tables
+EOF
+
+OUTPUT_PLAN=`nosql_runadmin_multipurpose connected_store $TMPLOG`
+
+echo -en "$OUTPUT_PLAN" | grep -v "Tables: " | grep -v "Logged" \
+| grep -v "SYS" | grep -v "Redirecting"
+
+}
+
+function monitor_tables_interactive() {
+
+set +eu
+
+for iii in `monitor_show_tables`
+do
+
+count_table $iii
+
+done
+
+set -eu
+
+}
+
+function monitor_all_tables_nohup() {
+
+set +eu
+
+check_master_admin
+
+for iii in `monitor_show_tables`
+do
+
+nohup count_table $iii >$TMPLOG 2>&1 </dev/null &
+
+done
+
+set -eu
+
+}
+
+
+function monitor_db_size() {
+
+check_master_admin
+
+METRIC_TIMESTAMP=`date +%s`
+METRIC_CATEGORY=Data
+METRIC_NAME=TotalDBSizeInBytes
+
+METRIC_VALUE=0
+for iii in `df | grep _vg-u | awk '{print $3}'`
+do
+
+	METRIC_VALUE=`expr $METRIC_VALUE + $iii`
+
+done
+
+echo "$DEFAULT_STORE_NAME.$METRIC_CATEGORY.$METRIC_NAME $METRIC_VALUE $METRIC_TIMESTAMP"
+
+}
+
+function print_examples() {
+
+echo "
+Adding examples here
+[m] DCLI or [s] single-target
+dcli -l oracle -g grp.nosqltest \"kvctl hidden-recovery 180207-101709-bkp_20180207\"
+
+#Example + Scope + Objective
+
+#############################
+# $0 runadmin show <command> 
+#############################"
+
+cat > $PLAN <<EOF
+help show
+EOF
+
+	nosql_runadmin_multipurpose connected $PLAN
+
+}
+
+
+if [ $# -eq 0 ]; then
+
+print_help
+
+elif [ $# -eq 1 ]; then
+
+	case $1 in
+	start)
+		start_sna
+	;;
+	stop)
+		stop_sna
+	;;
+	status)
+		status_sna
+	;;
+	low)
+		checkup_low
+	;;
+	mid)
+		checkup_medium
+	;;
+	-s)
+		checkup_mid_bygroup
+	;;
+	high)
+		checkup_high
+	;;
+	all)
+		checkup_low
+		checkup_medium
+		checkup_high
+	;;
+	probe)
+		nosql_probe
+	;;
+	logtail)
+		nosql_logtail
+	;;
+	export)
+		nosql_export
+	;;
+	import)
+		nosql_import
+	;;
+	hidden-install)
+		nosql_install
+	;;
+	hidden-create-users)
+		nosql_createusers
+	;;
+	hidden-switchover)
+		nosql_switchover
+	;;
+	hidden-reset)
+		nosql_reset
+	;;
+	hidden-help)
+		print_hidden_help
+	;;
+	runadmin)
+		show_version
+		nosql_runadmin
+	;;
+	runsql)
+		show_version
+		nosql_runsql
+	;;
+	backup)
+		nosql_backup
+	;;
+	purge)
+		nosql_backup_purge
+	;;
+	examples)
+		print_examples
+	;;
+	 *)
+	  print_help
+	 ;;
+	 esac
+
+elif [ $# -eq 2 ]; then
+
+	case $1 in
+	start)		
+		case $2 in
+		-disable-services)
+			start_sna $2
+		;;
+		*)
+			nosql_start_service $2
+		;;
+		esac
+	;;
+	stop)
+		case $2 in
+		-disable-services)
+			stop_sna $2
+		;;
+		*)
+			nosql_stop_service $2
+		;;
+		esac
+	;;
+	runadmin)
+		case $2 in
+		-c)
+			runadmin_connected
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	hidden-create-store)
+		case $2 in
+		[a-z]*)
+			nosql_createstore $2
+		 ;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	hidden-install)
+		case $2 in
+		firstnode)
+			nosql_install_firstnode
+		;;
+		deploy)
+			nosql_deploy_nosqltab
+			nosql_deploy
+		;;
+		pwdfile|wallet)
+			nosql_install $2
+		;;
+		createdirs)
+			nosql_create_dirs
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	hidden-switchover)
+		case $2 in
+		-p)
+			nosql_switchover $2
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	hidden-extend)
+		nosql_cluster_extend $2
+	;;
+	hidden-recovery)
+		nosql_recovery_helper $2
+	;;
+	hidden-upgrade)
+		case $2 in
+		showorder)
+			nosql_upgrade_showorder
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;	
+	hidden-show)
+		case $2 in
+		build)
+			nosql_check_binaries
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	backup)
+		nosql_backup $2
+	;;
+	purge)
+		nosql_backup_purge $2
+	;;
+	monitor)
+		case $2 in
+		basic)
+			monitor_basic
+		;;
+		extended)
+			monitor_extended
+		;;
+		os)
+			monitor_os
+		;;
+		tables)
+			monitor_all_tables_nohup
+		;;
+		dbsize)
+			monitor_db_size
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	diag)
+		case $2 in
+		collect)
+			diag_exec collect
+		;;
+		list)
+			diag_exec list
+		;;
+		setup)
+			diag_setup
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	show)
+		shift 1
+		nosql_show $@
+	;;
+	probe)
+		case $2 in
+		-cleanup)
+			nosql_probe_cleanup
+		;;
+		[1-9]*)
+			nosql_probe $2
+		;;
+		esac
+	;;
+	snap)
+		case $2 in
+		role_distrib)
+			snap_role_distrib
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	logtail)
+		nosql_logtail $2
+	;;
+	export)
+		nosql_export $2
+	;;
+	import)
+		nosql_import $2
+	;;
+	security)
+		case $2 in
+		show)
+			nosql_security_show
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	*)
+		print_help
+	;;
+	esac
+
+elif [ $# -eq 3 ]; then
+
+	case $1 in
+	backup)
+		nosql_backup $2 $3
+	;;
+	purge)
+		nosql_backup_purge $2 $3
+	;;
+	apply-config)
+		case $2 in
+		[1-9][0-9][0-9][0-9]*)
+			case $3 in
+			[1-9][0-9][0-9][0-9]*)
+				nosql_memory_tuning $2 $3
+			;;
+			*)
+				echo "Enter a valid number"
+				print_help
+			;;
+			esac
+		;;
+		*)
+			echo "Enter a valid number"
+			print_help
+		;;
+		esac
+	;;
+	diag)
+		case $2 in
+		verify)
+			case $3 in
+			local|multi)
+				diag_exec $2 $3
+			;;
+			*)
+				print_help
+			;;
+			esac
+		;;
+		setup)
+			case $3 in
+			-f)
+				diag_setup $3
+			;;
+			*)
+				print_help
+			;;
+			esac
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	monitor)
+		case $2 in
+		tables)
+			case $3 in
+			[a-zA-Z]*)
+				count_table $3
+			;;
+			-i)
+				monitor_tables_interactive
+			;;
+			*)
+				print_help
+			;;
+			esac
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	show)
+		shift 1
+		nosql_show $@
+	;;
+	hidden-install)
+		case $2 in
+		deploy)
+			case $3 in
+			-p)
+			nosql_deploy_nosqltab
+			nosql_deploy $3
+			;;
+			*)
+				print_help
+			;;
+			esac
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	hidden-extend)
+		case $3 in
+		-p)
+			nosql_cluster_extend $2 $3
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	security)
+		case $2 in
+		enable)
+			nosql_sec_enable $NOSQL_SECURITY_MODE
+		;;
+		show)
+			nosql_security_show
+		;;
+		copy)
+			nosql_remote_copy_sec $3
+		;;
+		*)
+			print_help
+		;;
+		esac
+	;;
+	*)
+		print_help
+	;;
+	esac
+
+elif [ $# -gt 3 ]; then
+
+	case $1 in
+	show)
+		shift 1
+		#echo "Test-$@"
+		nosql_show $@
+	;;
+	*)
+		print_help
+	;;
+	esac
+
+else
+
+	case $1 in
+	show)
+		shift 1
+		nosql_show $@
+	;;
+	*)
+		print_help
+	;;
+	esac
+
+fi
+
+#DEBUG
+#echo -en "\nPlan file:\n\t$PLAN\n\n" && cat $PLAN
+purge_old_tmp_files
+purge_tmp_files
+
+
+
