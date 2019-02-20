@@ -1,0 +1,9 @@
+alter session SET NLS_DATE_FORMAT='dd/mm/rr hh24:mi:ss';
+-- Backup optimization monitoring
+COL STATUS FORMAT a9
+COL hrs    FORMAT 999.99
+SELECT SESSION_KEY, INPUT_TYPE, STATUS, TO_CHAR(START_TIME,'mm/dd/yy hh24:mi') start_time,
+TO_CHAR(END_TIME,'mm/dd/yy hh24:mi')   end_time, ROUND(ELAPSED_SECONDS/60,2) elapsed_min, 
+INPUT_TYPE,OUTPUT_BYTES_DISPLAY, OPTIMIZED FROM V$RMAN_BACKUP_JOB_DETAILS
+ORDER BY SESSION_KEY;
+

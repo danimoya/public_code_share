@@ -1,0 +1,21 @@
+#!/usr/bin/ksh
+#Daniel Moya 2011
+EMAIL_ORCL=abc@yourmail.com
+
+if [[ $# -lt 2 ]]; then
+  print "Usage: orabackup full|arch|... <sid> [Options]"; print "Examples:";print "  orabackup full orcl"; 
+  print "  orabackup arch prod1"; print "  orabackup crosscheck homolog1"; exit 1
+fi
+
+LOGFILE=./logs/$1_$2_`date '+%Y%m%d_%H%M'`.log; export prog=$1;
+shift
+rman cmdfile "$prog.cmd" $* > $LOGFILE
+exit_code=$?
+
+cat $LOGFILE
+
+#EMAIL - ERROR REPORTING
+if [[ $exit_code != 0 ]];then
+	/bin/mail -s "Backup Error:$1-$SID" $EMAIL_ORCL < $LOGFILE > /dev/null
+	exit $exit_code
+fi

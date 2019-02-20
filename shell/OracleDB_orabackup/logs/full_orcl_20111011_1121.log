@@ -1,0 +1,1174 @@
+
+Recovery Manager: Release 11.2.0.1.0 - Production on Tue Oct 11 11:21:31 2011
+
+Copyright (c) 1982, 2009, Oracle and/or its affiliates.  All rights reserved.
+
+RMAN> connect target *
+2> run
+3> {
+4> backup as compressed backupset section size 10 M full database filesperset 1 format '/backup/full_%d_%U_%s_%p';
+5> backup spfile format '/backup/spfile_%d_%U_%s_%p';
+6> backup archivelog all delete input  format '/backup/arch_%d_%U_%s_%t';
+7> }
+8> 
+connected to target database: ORCL (DBID=1291588391)
+
+Starting backup at 11-OCT-11
+using target database control file instead of recovery catalog
+allocated channel: ORA_DISK_1
+channel ORA_DISK_1: SID=9 device type=DISK
+allocated channel: ORA_DISK_2
+channel ORA_DISK_2: SID=72 device type=DISK
+allocated channel: ORA_DISK_3
+channel ORA_DISK_3: SID=139 device type=DISK
+allocated channel: ORA_DISK_4
+channel ORA_DISK_4: SID=202 device type=DISK
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 1 through 1280
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 1 through 1280
+channel ORA_DISK_2: starting piece 1 at 11-OCT-11
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 1 through 1280
+channel ORA_DISK_3: starting piece 1 at 11-OCT-11
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 1 through 1280
+channel ORA_DISK_4: starting piece 1 at 11-OCT-11
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_1_1_211_1 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 1281 through 2560
+channel ORA_DISK_1: starting piece 2 at 11-OCT-11
+channel ORA_DISK_2: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_1_1_212_1 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 2561 through 3840
+channel ORA_DISK_2: starting piece 3 at 11-OCT-11
+channel ORA_DISK_3: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_1_1_213_1 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 3841 through 5120
+channel ORA_DISK_3: starting piece 4 at 11-OCT-11
+channel ORA_DISK_4: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_1_1_214_1 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 5121 through 6400
+channel ORA_DISK_4: starting piece 5 at 11-OCT-11
+channel ORA_DISK_1: finished piece 2 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_2_1_211_2 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 6401 through 7680
+channel ORA_DISK_1: starting piece 6 at 11-OCT-11
+channel ORA_DISK_2: finished piece 3 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_3_1_211_3 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 7681 through 8960
+channel ORA_DISK_2: starting piece 7 at 11-OCT-11
+channel ORA_DISK_3: finished piece 4 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_4_1_211_4 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 8961 through 10240
+channel ORA_DISK_3: starting piece 8 at 11-OCT-11
+channel ORA_DISK_4: finished piece 5 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_5_1_211_5 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 10241 through 11520
+channel ORA_DISK_4: starting piece 9 at 11-OCT-11
+channel ORA_DISK_1: finished piece 6 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_6_1_211_6 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 11521 through 12800
+channel ORA_DISK_1: starting piece 10 at 11-OCT-11
+channel ORA_DISK_2: finished piece 7 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_7_1_211_7 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 12801 through 14080
+channel ORA_DISK_2: starting piece 11 at 11-OCT-11
+channel ORA_DISK_3: finished piece 8 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_8_1_211_8 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 14081 through 15360
+channel ORA_DISK_3: starting piece 12 at 11-OCT-11
+channel ORA_DISK_1: finished piece 10 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_10_1_211_10 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 15361 through 16640
+channel ORA_DISK_1: starting piece 13 at 11-OCT-11
+channel ORA_DISK_2: finished piece 11 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_11_1_211_11 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 16641 through 17920
+channel ORA_DISK_2: starting piece 14 at 11-OCT-11
+channel ORA_DISK_3: finished piece 12 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_12_1_211_12 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 17921 through 19200
+channel ORA_DISK_3: starting piece 15 at 11-OCT-11
+channel ORA_DISK_4: finished piece 9 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_9_1_211_9 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 19201 through 20480
+channel ORA_DISK_4: starting piece 16 at 11-OCT-11
+channel ORA_DISK_1: finished piece 13 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_13_1_211_13 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 20481 through 21760
+channel ORA_DISK_1: starting piece 17 at 11-OCT-11
+channel ORA_DISK_2: finished piece 14 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_14_1_211_14 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 21761 through 23040
+channel ORA_DISK_2: starting piece 18 at 11-OCT-11
+channel ORA_DISK_3: finished piece 15 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_15_1_211_15 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 23041 through 24320
+channel ORA_DISK_3: starting piece 19 at 11-OCT-11
+channel ORA_DISK_1: finished piece 17 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_17_1_211_17 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 24321 through 25600
+channel ORA_DISK_1: starting piece 20 at 11-OCT-11
+channel ORA_DISK_2: finished piece 18 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_18_1_211_18 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 25601 through 26880
+channel ORA_DISK_2: starting piece 21 at 11-OCT-11
+channel ORA_DISK_3: finished piece 19 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_19_1_211_19 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 26881 through 28160
+channel ORA_DISK_3: starting piece 22 at 11-OCT-11
+channel ORA_DISK_4: finished piece 16 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_16_1_211_16 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 28161 through 29440
+channel ORA_DISK_4: starting piece 23 at 11-OCT-11
+channel ORA_DISK_1: finished piece 20 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_20_1_211_20 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 29441 through 30720
+channel ORA_DISK_1: starting piece 24 at 11-OCT-11
+channel ORA_DISK_2: finished piece 21 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_21_1_211_21 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 30721 through 32000
+channel ORA_DISK_2: starting piece 25 at 11-OCT-11
+channel ORA_DISK_3: finished piece 22 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_22_1_211_22 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 32001 through 33280
+channel ORA_DISK_3: starting piece 26 at 11-OCT-11
+channel ORA_DISK_1: finished piece 24 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_24_1_211_24 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 33281 through 34560
+channel ORA_DISK_1: starting piece 27 at 11-OCT-11
+channel ORA_DISK_4: finished piece 23 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_23_1_211_23 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 34561 through 35840
+channel ORA_DISK_4: starting piece 28 at 11-OCT-11
+channel ORA_DISK_2: finished piece 25 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_25_1_211_25 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 35841 through 37120
+channel ORA_DISK_2: starting piece 29 at 11-OCT-11
+channel ORA_DISK_1: finished piece 27 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_27_1_211_27 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 37121 through 38400
+channel ORA_DISK_1: starting piece 30 at 11-OCT-11
+channel ORA_DISK_2: finished piece 29 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_29_1_211_29 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 38401 through 39680
+channel ORA_DISK_2: starting piece 31 at 11-OCT-11
+channel ORA_DISK_3: finished piece 26 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_26_1_211_26 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 39681 through 40960
+channel ORA_DISK_3: starting piece 32 at 11-OCT-11
+channel ORA_DISK_4: finished piece 28 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_28_1_211_28 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 40961 through 42240
+channel ORA_DISK_4: starting piece 33 at 11-OCT-11
+channel ORA_DISK_1: finished piece 30 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_30_1_211_30 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 42241 through 43520
+channel ORA_DISK_1: starting piece 34 at 11-OCT-11
+channel ORA_DISK_2: finished piece 31 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_31_1_211_31 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 43521 through 44800
+channel ORA_DISK_2: starting piece 35 at 11-OCT-11
+channel ORA_DISK_3: finished piece 32 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_32_1_211_32 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 44801 through 46080
+channel ORA_DISK_3: starting piece 36 at 11-OCT-11
+channel ORA_DISK_4: finished piece 33 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_33_1_211_33 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 46081 through 47360
+channel ORA_DISK_4: starting piece 37 at 11-OCT-11
+channel ORA_DISK_1: finished piece 34 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_34_1_211_34 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 47361 through 48640
+channel ORA_DISK_1: starting piece 38 at 11-OCT-11
+channel ORA_DISK_2: finished piece 35 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_35_1_211_35 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 48641 through 49920
+channel ORA_DISK_2: starting piece 39 at 11-OCT-11
+channel ORA_DISK_3: finished piece 36 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_36_1_211_36 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 49921 through 51200
+channel ORA_DISK_3: starting piece 40 at 11-OCT-11
+channel ORA_DISK_1: finished piece 38 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_38_1_211_38 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 51201 through 52480
+channel ORA_DISK_1: starting piece 41 at 11-OCT-11
+channel ORA_DISK_2: finished piece 39 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_39_1_211_39 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 52481 through 53760
+channel ORA_DISK_2: starting piece 42 at 11-OCT-11
+channel ORA_DISK_3: finished piece 40 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_40_1_211_40 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 53761 through 55040
+channel ORA_DISK_3: starting piece 43 at 11-OCT-11
+channel ORA_DISK_4: finished piece 37 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_37_1_211_37 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 55041 through 56320
+channel ORA_DISK_4: starting piece 44 at 11-OCT-11
+channel ORA_DISK_1: finished piece 41 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_41_1_211_41 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 56321 through 57600
+channel ORA_DISK_1: starting piece 45 at 11-OCT-11
+channel ORA_DISK_2: finished piece 42 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_42_1_211_42 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 57601 through 58880
+channel ORA_DISK_2: starting piece 46 at 11-OCT-11
+channel ORA_DISK_1: finished piece 45 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_45_1_211_45 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 58881 through 60160
+channel ORA_DISK_1: starting piece 47 at 11-OCT-11
+channel ORA_DISK_2: finished piece 46 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_46_1_211_46 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 60161 through 61440
+channel ORA_DISK_2: starting piece 48 at 11-OCT-11
+channel ORA_DISK_3: finished piece 43 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_43_1_211_43 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 61441 through 62720
+channel ORA_DISK_3: starting piece 49 at 11-OCT-11
+channel ORA_DISK_4: finished piece 44 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_44_1_211_44 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 62721 through 64000
+channel ORA_DISK_4: starting piece 50 at 11-OCT-11
+channel ORA_DISK_1: finished piece 47 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_47_1_211_47 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 64001 through 65280
+channel ORA_DISK_1: starting piece 51 at 11-OCT-11
+channel ORA_DISK_2: finished piece 48 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_48_1_211_48 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 65281 through 66560
+channel ORA_DISK_2: starting piece 52 at 11-OCT-11
+channel ORA_DISK_3: finished piece 49 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_49_1_211_49 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 66561 through 67840
+channel ORA_DISK_3: starting piece 53 at 11-OCT-11
+channel ORA_DISK_1: finished piece 51 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_51_1_211_51 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 67841 through 69120
+channel ORA_DISK_1: starting piece 54 at 11-OCT-11
+channel ORA_DISK_2: finished piece 52 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_52_1_211_52 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 69121 through 70400
+channel ORA_DISK_2: starting piece 55 at 11-OCT-11
+channel ORA_DISK_3: finished piece 53 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_53_1_211_53 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 70401 through 71680
+channel ORA_DISK_3: starting piece 56 at 11-OCT-11
+channel ORA_DISK_4: finished piece 50 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_50_1_211_50 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:05
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 71681 through 72960
+channel ORA_DISK_4: starting piece 57 at 11-OCT-11
+channel ORA_DISK_1: finished piece 54 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_54_1_211_54 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 72961 through 74240
+channel ORA_DISK_1: starting piece 58 at 11-OCT-11
+channel ORA_DISK_2: finished piece 55 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_55_1_211_55 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 74241 through 75520
+channel ORA_DISK_2: starting piece 59 at 11-OCT-11
+channel ORA_DISK_3: finished piece 56 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_56_1_211_56 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 75521 through 76800
+channel ORA_DISK_3: starting piece 60 at 11-OCT-11
+channel ORA_DISK_1: finished piece 58 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_58_1_211_58 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 76801 through 78080
+channel ORA_DISK_1: starting piece 61 at 11-OCT-11
+channel ORA_DISK_4: finished piece 57 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_57_1_211_57 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 78081 through 79360
+channel ORA_DISK_4: starting piece 62 at 11-OCT-11
+channel ORA_DISK_3: finished piece 60 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_60_1_211_60 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 79361 through 80640
+channel ORA_DISK_3: starting piece 63 at 11-OCT-11
+channel ORA_DISK_2: finished piece 59 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_59_1_211_59 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 80641 through 81920
+channel ORA_DISK_2: starting piece 64 at 11-OCT-11
+channel ORA_DISK_1: finished piece 61 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_61_1_211_61 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 81921 through 83200
+channel ORA_DISK_1: starting piece 65 at 11-OCT-11
+channel ORA_DISK_4: finished piece 62 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_62_1_211_62 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 83201 through 84480
+channel ORA_DISK_4: starting piece 66 at 11-OCT-11
+channel ORA_DISK_3: finished piece 63 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_63_1_211_63 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 84481 through 85760
+channel ORA_DISK_3: starting piece 67 at 11-OCT-11
+channel ORA_DISK_2: finished piece 64 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_64_1_211_64 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+backing up blocks 85761 through 87040
+channel ORA_DISK_2: starting piece 68 at 11-OCT-11
+channel ORA_DISK_1: finished piece 65 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_65_1_211_65 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 1281 through 2560
+channel ORA_DISK_1: starting piece 2 at 11-OCT-11
+channel ORA_DISK_4: finished piece 66 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_66_1_211_66 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 2561 through 3840
+channel ORA_DISK_4: starting piece 3 at 11-OCT-11
+channel ORA_DISK_1: finished piece 2 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_2_1_212_2 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 3841 through 5120
+channel ORA_DISK_1: starting piece 4 at 11-OCT-11
+channel ORA_DISK_2: finished piece 68 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_68_1_211_68 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 5121 through 6400
+channel ORA_DISK_2: starting piece 5 at 11-OCT-11
+channel ORA_DISK_3: finished piece 67 at 11-OCT-11
+piece handle=/backup/full_ORCL_6jmor0pu_67_1_211_67 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:05
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 6401 through 7680
+channel ORA_DISK_3: starting piece 6 at 11-OCT-11
+channel ORA_DISK_1: finished piece 4 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_4_1_212_4 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 7681 through 8960
+channel ORA_DISK_1: starting piece 7 at 11-OCT-11
+channel ORA_DISK_4: finished piece 3 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_3_1_212_3 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 8961 through 10240
+channel ORA_DISK_4: starting piece 8 at 11-OCT-11
+channel ORA_DISK_2: finished piece 5 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_5_1_212_5 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 10241 through 11520
+channel ORA_DISK_2: starting piece 9 at 11-OCT-11
+channel ORA_DISK_1: finished piece 7 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_7_1_212_7 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 11521 through 12800
+channel ORA_DISK_1: starting piece 10 at 11-OCT-11
+channel ORA_DISK_3: finished piece 6 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_6_1_212_6 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 12801 through 14080
+channel ORA_DISK_3: starting piece 11 at 11-OCT-11
+channel ORA_DISK_1: finished piece 10 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_10_1_212_10 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 14081 through 15360
+channel ORA_DISK_1: starting piece 12 at 11-OCT-11
+channel ORA_DISK_2: finished piece 9 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_9_1_212_9 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 15361 through 16640
+channel ORA_DISK_2: starting piece 13 at 11-OCT-11
+channel ORA_DISK_4: finished piece 8 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_8_1_212_8 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 16641 through 17920
+channel ORA_DISK_4: starting piece 14 at 11-OCT-11
+channel ORA_DISK_1: finished piece 12 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_12_1_212_12 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 17921 through 19200
+channel ORA_DISK_1: starting piece 15 at 11-OCT-11
+channel ORA_DISK_3: finished piece 11 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_11_1_212_11 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 19201 through 20480
+channel ORA_DISK_3: starting piece 16 at 11-OCT-11
+channel ORA_DISK_2: finished piece 13 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_13_1_212_13 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 20481 through 21760
+channel ORA_DISK_2: starting piece 17 at 11-OCT-11
+channel ORA_DISK_4: finished piece 14 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_14_1_212_14 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 21761 through 23040
+channel ORA_DISK_4: starting piece 18 at 11-OCT-11
+channel ORA_DISK_1: finished piece 15 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_15_1_212_15 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 23041 through 24320
+channel ORA_DISK_1: starting piece 19 at 11-OCT-11
+channel ORA_DISK_3: finished piece 16 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_16_1_212_16 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 24321 through 25600
+channel ORA_DISK_3: starting piece 20 at 11-OCT-11
+channel ORA_DISK_2: finished piece 17 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_17_1_212_17 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 25601 through 26880
+channel ORA_DISK_2: starting piece 21 at 11-OCT-11
+channel ORA_DISK_4: finished piece 18 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_18_1_212_18 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 26881 through 28160
+channel ORA_DISK_4: starting piece 22 at 11-OCT-11
+channel ORA_DISK_1: finished piece 19 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_19_1_212_19 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 28161 through 29440
+channel ORA_DISK_1: starting piece 23 at 11-OCT-11
+channel ORA_DISK_3: finished piece 20 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_20_1_212_20 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 29441 through 30720
+channel ORA_DISK_3: starting piece 24 at 11-OCT-11
+channel ORA_DISK_2: finished piece 21 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_21_1_212_21 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 30721 through 32000
+channel ORA_DISK_2: starting piece 25 at 11-OCT-11
+channel ORA_DISK_4: finished piece 22 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_22_1_212_22 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 32001 through 33280
+channel ORA_DISK_4: starting piece 26 at 11-OCT-11
+channel ORA_DISK_1: finished piece 23 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_23_1_212_23 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 33281 through 34560
+channel ORA_DISK_1: starting piece 27 at 11-OCT-11
+channel ORA_DISK_3: finished piece 24 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_24_1_212_24 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 34561 through 35840
+channel ORA_DISK_3: starting piece 28 at 11-OCT-11
+channel ORA_DISK_2: finished piece 25 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_25_1_212_25 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 35841 through 37120
+channel ORA_DISK_2: starting piece 29 at 11-OCT-11
+channel ORA_DISK_4: finished piece 26 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_26_1_212_26 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 37121 through 38400
+channel ORA_DISK_4: starting piece 30 at 11-OCT-11
+channel ORA_DISK_1: finished piece 27 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_27_1_212_27 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 38401 through 39680
+channel ORA_DISK_1: starting piece 31 at 11-OCT-11
+channel ORA_DISK_3: finished piece 28 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_28_1_212_28 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 39681 through 40960
+channel ORA_DISK_3: starting piece 32 at 11-OCT-11
+channel ORA_DISK_2: finished piece 29 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_29_1_212_29 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 40961 through 42240
+channel ORA_DISK_2: starting piece 33 at 11-OCT-11
+channel ORA_DISK_4: finished piece 30 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_30_1_212_30 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 42241 through 43520
+channel ORA_DISK_4: starting piece 34 at 11-OCT-11
+channel ORA_DISK_1: finished piece 31 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_31_1_212_31 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 43521 through 44800
+channel ORA_DISK_1: starting piece 35 at 11-OCT-11
+channel ORA_DISK_3: finished piece 32 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_32_1_212_32 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 44801 through 46080
+channel ORA_DISK_3: starting piece 36 at 11-OCT-11
+channel ORA_DISK_2: finished piece 33 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_33_1_212_33 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 46081 through 47360
+channel ORA_DISK_2: starting piece 37 at 11-OCT-11
+channel ORA_DISK_1: finished piece 35 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_35_1_212_35 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 47361 through 48640
+channel ORA_DISK_1: starting piece 38 at 11-OCT-11
+channel ORA_DISK_4: finished piece 34 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_34_1_212_34 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 48641 through 49920
+channel ORA_DISK_4: starting piece 39 at 11-OCT-11
+channel ORA_DISK_3: finished piece 36 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_36_1_212_36 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 49921 through 51200
+channel ORA_DISK_3: starting piece 40 at 11-OCT-11
+channel ORA_DISK_1: finished piece 38 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_38_1_212_38 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 51201 through 52480
+channel ORA_DISK_1: starting piece 41 at 11-OCT-11
+channel ORA_DISK_2: finished piece 37 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_37_1_212_37 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 52481 through 53760
+channel ORA_DISK_2: starting piece 42 at 11-OCT-11
+channel ORA_DISK_4: finished piece 39 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_39_1_212_39 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 53761 through 55040
+channel ORA_DISK_4: starting piece 43 at 11-OCT-11
+channel ORA_DISK_1: finished piece 41 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_41_1_212_41 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 55041 through 56320
+channel ORA_DISK_1: starting piece 44 at 11-OCT-11
+channel ORA_DISK_3: finished piece 40 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_40_1_212_40 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 56321 through 57600
+channel ORA_DISK_3: starting piece 45 at 11-OCT-11
+channel ORA_DISK_2: finished piece 42 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_42_1_212_42 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 57601 through 58880
+channel ORA_DISK_2: starting piece 46 at 11-OCT-11
+channel ORA_DISK_4: finished piece 43 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_43_1_212_43 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 58881 through 60160
+channel ORA_DISK_4: starting piece 47 at 11-OCT-11
+channel ORA_DISK_1: finished piece 44 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_44_1_212_44 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 60161 through 61440
+channel ORA_DISK_1: starting piece 48 at 11-OCT-11
+channel ORA_DISK_3: finished piece 45 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_45_1_212_45 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 61441 through 62720
+channel ORA_DISK_3: starting piece 49 at 11-OCT-11
+channel ORA_DISK_2: finished piece 46 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_46_1_212_46 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 62721 through 64000
+channel ORA_DISK_2: starting piece 50 at 11-OCT-11
+channel ORA_DISK_4: finished piece 47 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_47_1_212_47 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:04
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+backing up blocks 64001 through 65280
+channel ORA_DISK_4: starting piece 51 at 11-OCT-11
+channel ORA_DISK_1: finished piece 48 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_48_1_212_48 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 1281 through 2560
+channel ORA_DISK_1: starting piece 2 at 11-OCT-11
+channel ORA_DISK_2: finished piece 50 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_50_1_212_50 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 2561 through 3840
+channel ORA_DISK_2: starting piece 3 at 11-OCT-11
+channel ORA_DISK_3: finished piece 49 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_49_1_212_49 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 3841 through 5120
+channel ORA_DISK_3: starting piece 4 at 11-OCT-11
+channel ORA_DISK_4: finished piece 51 at 11-OCT-11
+piece handle=/backup/full_ORCL_6kmor0pu_51_1_212_51 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 5121 through 6400
+channel ORA_DISK_4: starting piece 5 at 11-OCT-11
+channel ORA_DISK_1: finished piece 2 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_2_1_213_2 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 6401 through 7680
+channel ORA_DISK_1: starting piece 6 at 11-OCT-11
+channel ORA_DISK_2: finished piece 3 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_3_1_213_3 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 7681 through 8960
+channel ORA_DISK_2: starting piece 7 at 11-OCT-11
+channel ORA_DISK_3: finished piece 4 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_4_1_213_4 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 8961 through 10240
+channel ORA_DISK_3: starting piece 8 at 11-OCT-11
+channel ORA_DISK_4: finished piece 5 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_5_1_213_5 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:02
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 10241 through 11520
+channel ORA_DISK_4: starting piece 9 at 11-OCT-11
+channel ORA_DISK_1: finished piece 6 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_6_1_213_6 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+backing up blocks 11521 through 12800
+channel ORA_DISK_1: starting piece 10 at 11-OCT-11
+channel ORA_DISK_2: finished piece 7 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_7_1_213_7 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 1281 through 2560
+channel ORA_DISK_2: starting piece 2 at 11-OCT-11
+channel ORA_DISK_3: finished piece 8 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_8_1_213_8 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 2561 through 3840
+channel ORA_DISK_3: starting piece 3 at 11-OCT-11
+channel ORA_DISK_1: finished piece 10 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_10_1_213_10 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 3841 through 5120
+channel ORA_DISK_1: starting piece 4 at 11-OCT-11
+channel ORA_DISK_4: finished piece 9 at 11-OCT-11
+piece handle=/backup/full_ORCL_6lmor0pv_9_1_213_9 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_4: starting compressed full datafile backup set
+channel ORA_DISK_4: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 5121 through 6400
+channel ORA_DISK_4: starting piece 5 at 11-OCT-11
+channel ORA_DISK_1: finished piece 4 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_4_1_214_4 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 6401 through 7680
+channel ORA_DISK_1: starting piece 6 at 11-OCT-11
+channel ORA_DISK_2: finished piece 2 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_2_1_214_2 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 7681 through 8960
+channel ORA_DISK_2: starting piece 7 at 11-OCT-11
+channel ORA_DISK_3: finished piece 3 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_3_1_214_3 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 8961 through 10240
+channel ORA_DISK_3: starting piece 8 at 11-OCT-11
+channel ORA_DISK_1: finished piece 6 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_6_1_214_6 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:00
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+backing up blocks 10241 through 11520
+channel ORA_DISK_1: starting piece 9 at 11-OCT-11
+channel ORA_DISK_2: finished piece 7 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_7_1_214_7 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00004 name=/oracle/oradata/orcl/users01.dbf
+channel ORA_DISK_2: starting piece 1 at 11-OCT-11
+channel ORA_DISK_4: finished piece 5 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_5_1_214_5 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_4: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_3: finished piece 8 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_8_1_214_8 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: finished piece 9 at 11-OCT-11
+piece handle=/backup/full_ORCL_6mmor0q0_9_1_214_9 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_atmor0se_1_1_349_1 tag=TAG20111011T112133 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+Finished backup at 11-OCT-11
+
+Starting backup at 11-OCT-11
+using channel ORA_DISK_1
+using channel ORA_DISK_2
+using channel ORA_DISK_3
+using channel ORA_DISK_4
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+including current SPFILE in backup set
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/spfile_ORCL_aumor0si_1_1_350_1 tag=TAG20111011T112258 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+Finished backup at 11-OCT-11
+
+Starting backup at 11-OCT-11
+current log archived
+using channel ORA_DISK_1
+using channel ORA_DISK_2
+using channel ORA_DISK_3
+using channel ORA_DISK_4
+channel ORA_DISK_1: starting compressed archived log backup set
+channel ORA_DISK_1: specifying archived log(s) in backup set
+input archived log thread=1 sequence=21 RECID=7 STAMP=764248980
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/arch_ORCL_avmor0sl_1_1_351_764248981 tag=TAG20111011T112300 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: deleting archived log(s)
+archived log file name=/oracle/flash_recovery_area/ORCL/archivelog/2011_10_11/o1_mf_1_21_798nb45b_.arc RECID=7 STAMP=764248980
+Finished backup at 11-OCT-11
+
+Starting Control File and SPFILE Autobackup at 11-OCT-11
+piece handle=/oracle/flash_recovery_area/ORCL/autobackup/2011_10_11/o1_mf_s_764248982_798nb6nl_.bkp comment=NONE
+Finished Control File and SPFILE Autobackup at 11-OCT-11
+
+Recovery Manager complete.

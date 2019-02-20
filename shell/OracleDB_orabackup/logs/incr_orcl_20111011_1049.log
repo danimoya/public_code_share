@@ -1,0 +1,53 @@
+
+Recovery Manager: Release 11.2.0.1.0 - Production on Tue Oct 11 10:49:44 2011
+
+Copyright (c) 1982, 2009, Oracle and/or its affiliates.  All rights reserved.
+
+RMAN> connect target *
+2> run
+3> {
+4> BACKUP INCREMENTAL LEVEL 1 as compressed backupset database filesperset 3 format '/backup/incr_%d_%U_%s_%p';
+5> }
+6> 
+connected to target database: ORCL (DBID=1291588391)
+
+Starting backup at 11-OCT-11
+using target database control file instead of recovery catalog
+allocated channel: ORA_DISK_1
+channel ORA_DISK_1: SID=140 device type=DISK
+allocated channel: ORA_DISK_2
+channel ORA_DISK_2: SID=197 device type=DISK
+allocated channel: ORA_DISK_3
+channel ORA_DISK_3: SID=9 device type=DISK
+allocated channel: ORA_DISK_4
+channel ORA_DISK_4: SID=72 device type=DISK
+channel ORA_DISK_1: starting compressed incremental level 1 datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_2: starting compressed incremental level 1 datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+input datafile file number=00004 name=/oracle/oradata/orcl/users01.dbf
+channel ORA_DISK_2: starting piece 1 at 11-OCT-11
+channel ORA_DISK_3: starting compressed incremental level 1 datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+channel ORA_DISK_3: starting piece 1 at 11-OCT-11
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/incr_ORCL_5pmoquub_1_1_185_1 tag=TAG20111011T104947 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_2: finished piece 1 at 11-OCT-11
+piece handle=/backup/incr_ORCL_5qmoquub_1_1_186_1 tag=TAG20111011T104947 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:03
+channel ORA_DISK_3: finished piece 1 at 11-OCT-11
+piece handle=/backup/incr_ORCL_5rmoquub_1_1_187_1 tag=TAG20111011T104947 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:03
+Finished backup at 11-OCT-11
+
+Starting Control File and SPFILE Autobackup at 11-OCT-11
+piece handle=/oracle/flash_recovery_area/ORCL/autobackup/2011_10_11/o1_mf_s_764246991_798lczkj_.bkp comment=NONE
+Finished Control File and SPFILE Autobackup at 11-OCT-11
+
+Recovery Manager complete.

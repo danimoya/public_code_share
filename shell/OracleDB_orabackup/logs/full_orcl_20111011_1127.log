@@ -1,0 +1,86 @@
+
+Recovery Manager: Release 11.2.0.1.0 - Production on Tue Oct 11 11:27:41 2011
+
+Copyright (c) 1982, 2009, Oracle and/or its affiliates.  All rights reserved.
+
+RMAN> connect target *
+2> run
+3> {
+4> backup as compressed backupset full database filesperset 3 format '/backup/full_%d_%U_%s_%p';
+5> backup spfile format '/backup/spfile_%d_%U_%s_%p';
+6> backup archivelog all delete input  format '/backup/arch_%d_%U_%s_%t';
+7> }
+8> 
+connected to target database: ORCL (DBID=1291588391)
+
+Starting backup at 11-OCT-11
+using target database control file instead of recovery catalog
+allocated channel: ORA_DISK_1
+channel ORA_DISK_1: SID=17 device type=DISK
+allocated channel: ORA_DISK_2
+channel ORA_DISK_2: SID=75 device type=DISK
+allocated channel: ORA_DISK_3
+channel ORA_DISK_3: SID=140 device type=DISK
+allocated channel: ORA_DISK_4
+channel ORA_DISK_4: SID=197 device type=DISK
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+input datafile file number=00001 name=/oracle/oradata/orcl/system01.dbf
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_2: starting compressed full datafile backup set
+channel ORA_DISK_2: specifying datafile(s) in backup set
+input datafile file number=00002 name=/oracle/oradata/orcl/sysaux01.dbf
+input datafile file number=00004 name=/oracle/oradata/orcl/users01.dbf
+channel ORA_DISK_2: starting piece 1 at 11-OCT-11
+channel ORA_DISK_3: starting compressed full datafile backup set
+channel ORA_DISK_3: specifying datafile(s) in backup set
+input datafile file number=00005 name=/oracle/oradata/orcl/example01.dbf
+input datafile file number=00003 name=/oracle/oradata/orcl/undotbs01.dbf
+channel ORA_DISK_3: starting piece 1 at 11-OCT-11
+channel ORA_DISK_3: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_b3mor15h_1_1_355_1 tag=TAG20111011T112743 comment=NONE
+channel ORA_DISK_3: backup set complete, elapsed time: 00:00:15
+channel ORA_DISK_2: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_b2mor15g_1_1_354_1 tag=TAG20111011T112743 comment=NONE
+channel ORA_DISK_2: backup set complete, elapsed time: 00:00:46
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/full_ORCL_b1mor15g_1_1_353_1 tag=TAG20111011T112743 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:56
+Finished backup at 11-OCT-11
+
+Starting backup at 11-OCT-11
+using channel ORA_DISK_1
+using channel ORA_DISK_2
+using channel ORA_DISK_3
+using channel ORA_DISK_4
+channel ORA_DISK_1: starting compressed full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+including current SPFILE in backup set
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/spfile_ORCL_b4mor179_1_1_356_1 tag=TAG20111011T112841 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+Finished backup at 11-OCT-11
+
+Starting backup at 11-OCT-11
+current log archived
+using channel ORA_DISK_1
+using channel ORA_DISK_2
+using channel ORA_DISK_3
+using channel ORA_DISK_4
+channel ORA_DISK_1: starting compressed archived log backup set
+channel ORA_DISK_1: specifying archived log(s) in backup set
+input archived log thread=1 sequence=22 RECID=8 STAMP=764249322
+channel ORA_DISK_1: starting piece 1 at 11-OCT-11
+channel ORA_DISK_1: finished piece 1 at 11-OCT-11
+piece handle=/backup/arch_ORCL_b5mor17b_1_1_357_764249323 tag=TAG20111011T112843 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+channel ORA_DISK_1: deleting archived log(s)
+archived log file name=/oracle/flash_recovery_area/ORCL/archivelog/2011_10_11/o1_mf_1_22_798nntx5_.arc RECID=8 STAMP=764249322
+Finished backup at 11-OCT-11
+
+Starting Control File and SPFILE Autobackup at 11-OCT-11
+piece handle=/oracle/flash_recovery_area/ORCL/autobackup/2011_10_11/o1_mf_s_764249324_798nnx1b_.bkp comment=NONE
+Finished Control File and SPFILE Autobackup at 11-OCT-11
+
+Recovery Manager complete.
